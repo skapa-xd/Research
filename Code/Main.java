@@ -1,149 +1,23 @@
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Random;
-import java.util.Set;
-import java.util.Stack;
 import java.util.Map;
 
-
 public class Main 
-{
-    
-    // Generate Nodes for Sensor Network
-    public static List<Node> generateNodes(int width, int length, int sensorNodes, int dataNodes)
+{   
+    public static void main(String[] args) 
     {
-        Set<Integer> dataNodeSet = new HashSet<>(); // To store the dataNode ID
-        Random random = new Random();
-        List<Node> nodes = new ArrayList<>();
-        
-        while (dataNodeSet.size() < dataNodes) { // Adds all dataNodes in dataNodeSet
-            int randomNode = random.nextInt(1, sensorNodes);
-            dataNodeSet.add(randomNode);
-        }
-        for (int i = 0; i < sensorNodes; i++) {
-            int x = random.nextInt(width + 1); // Generate a random x-coordinate
-            int y = random.nextInt(length + 1); // Generate a random y-coordinate
-            Node node;
-            int data = random.nextInt(500, 1000); // DataNodes can hold dataPackets from 500 to 1000
-
-            if (dataNodeSet.contains(i)) {
-                node = new Node(x, y, true, data); // Data node
-            } else {
-                node = new Node(x, y, false, 0); // Not a Data node
-            }
-            node.setID(i);
-            nodes.add(node);
-        }
-        return nodes;
-    }
-    
-    // Calculate the Euclidiean Distance
-    public static double distance(double x1, double y1, double x2, double y2)
-    {
-        return (Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)));
-    }
-
-    // Transmission Cost
-    public static double transmissionCost(double distance) 
-    {
-        double elec = 100; 
-        double amp = 0.1;
-        double k = 3200;
-        return (2 * elec * k) + (amp * k * Math.pow(distance, 2));
-    }
-
-    // Add Edges
-    public static List<List<Edge>> addEdges(List<Node> nodes, double Tr) 
-    {
-        int sensorNodes = nodes.size();
-        Edge edge, edge1; 
-        List<List<Edge>> adjacencyList = new ArrayList<>(sensorNodes);
-
-        for (int i = 0; i < sensorNodes; i++) {
-            adjacencyList.add(new ArrayList<>());
-        }
-
-        for (int i = 0; i < sensorNodes; i++) {
-            for (int j = i + 1; j < sensorNodes; j++) {
-                double d = distance(nodes.get(i).getX(), nodes.get(i).getY(), nodes.get(j).getX(), nodes.get(j).getY());
-                if (d <= Tr) {
-                    
-                    double tr = transmissionCost(d);
-                    edge = new Edge(i,j,tr);
-                    edge1 = new Edge(j,i, tr);
-                    adjacencyList.get(i).add(edge);
-                    adjacencyList.get(j).add(edge1);
-                }
-            }
-        }
-        return adjacencyList;
-    }
-
-    // Create an adjaceny list
-    public static Map<Integer, List<Integer>>createAdjacencyList(List<Node> nodes, List<List<Edge>> edges)
-    {
-        Map<Integer, List<Integer>> adjList = new HashMap<>();
-        for (int i = 0; i < nodes.size(); i++) {
-            adjList.put(i, new ArrayList<>());
-        }
-
-        for (List<Edge> edgeList : edges) {
-            for (Edge edge : edgeList) {
-                int src = edge.from;
-                int dst = edge.to;
-                adjList.get(src).add(dst);
-                
-            }
-        } 
-        return adjList;   
-    }
-
-    // Check Connectivity
-    public static boolean isConnected(List<Node> nodes,Map<Integer, List<Integer>> edges )
-    {
-        int n = nodes.size();
-        Set<Integer> visited = new HashSet<>();
-        Stack<Integer> stack = new Stack<>();
-        stack.push(0);
-
-        while (!stack.isEmpty()) {
-            int node = stack.pop();
-            visited.add(node);
-
-            for (int neighbor : edges.get(node)) {
-                if (!visited.contains(neighbor)) {
-                    stack.push(neighbor);
-                }
-            }
-        }
-        if (visited.size() == n) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    
-
-
-
-
-
-
-
-    
-    public static void main(String[] args) {
+        SensorNetwork network = new SensorNetwork();
         List<Node> nodes = new ArrayList<>();
         List<List<Edge>> edges = new ArrayList<>();
         Map<Integer, List<Integer>> adjList = new HashMap<>();
         boolean connected;
+        List<Integer> ans = new ArrayList<>();
 
-        nodes = generateNodes(10, 10, 10, 5);
-        edges = addEdges(nodes, 5);
-        adjList = createAdjacencyList(nodes, edges);
-        connected = isConnected(nodes, adjList);
+        nodes = network.generateNodes(10, 10, 10, 5);
+        edges = network.addEdges(nodes, 7);
+        connected = network.isConnected(edges);
+        ans = network.dijkstra(edges, 1, 9);
 
 
         System.out.println(connected);
@@ -164,7 +38,7 @@ public class Main
             }
             System.out.println(); 
         }
-        
+        System.out.println(ans);
 
 }
 }

@@ -2,18 +2,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.PriorityQueue;
 import java.util.Random;
 import java.util.Set;
 import java.util.Stack;
+import java.util.PriorityQueue;
 
-public class test {
+public class SensorNetwork {
     // Generate Nodes for Sensor Network
-    public static List<Node> generateNodes(int width, int length, int sensorNodes, int dataNodes)
+    public List<Node> generateNodes(int width, int length, int sensorNodes, int dataNodes)
     {
         Set<Integer> dataNodeSet = new HashSet<>(); // To store the dataNode ID
         Random random = new Random();
@@ -41,13 +39,13 @@ public class test {
     }
     
     // Calculate the Euclidiean Distance
-    public static double distance(double x1, double y1, double x2, double y2)
+    public double distance(double x1, double y1, double x2, double y2)
     {
         return (Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)));
     }
 
     // Transmission Cost
-    public static double transmissionCost(double distance) 
+    public double transmissionCost(double distance) 
     {
         double elec = 100; 
         double amp = 0.1;
@@ -56,7 +54,7 @@ public class test {
     }
 
     // Add Edges
-    public static List<List<Edge>> addEdges(List<Node> nodes, double Tr) 
+    public List<List<Edge>> addEdges(List<Node> nodes, double Tr) 
     {
         int sensorNodes = nodes.size();
         Edge edge, edge1; 
@@ -82,10 +80,8 @@ public class test {
         return adjacencyList;
     }
 
-    
-
     // Check Connectivity
-    public static boolean isConnected(List<List<Edge>> adjacencyList) {
+    public boolean isConnected(List<List<Edge>> adjacencyList) {
         int n = adjacencyList.size();
         Set<Integer> visited = new HashSet<>();
         Stack<Integer> stack = new Stack<>();
@@ -110,7 +106,8 @@ public class test {
         }
     }
 
-    public static List<Integer> dijkstra(List<List<Edge>> adjacencyList, int start, int end) {
+    // Shortest Path
+    public List<Integer> dijkstra(List<List<Edge>> adjacencyList, int start, int end) {
         int n = adjacencyList.size();
         double[] distance = new double[n];
         int[] previous = new int[n];
@@ -152,62 +149,6 @@ public class test {
         Collections.reverse(shortestPath);
         return shortestPath;
     }
-
-
-
-
-
-
     
-    public static void main(String[] args) {
-        List<Node> nodes = new ArrayList<>();
-        List<List<Edge>> edges = new ArrayList<>();
-        Map<Integer, List<Integer>> adjList = new HashMap<>();
-        boolean connected;
-        List<Integer> ans = new ArrayList<>();
-
-        nodes.add(new Node(7, 10, true, 5));
-        nodes.add(new Node(10, 10, true, 5));
-        nodes.add(new Node(8,8, true, 5));
-        nodes.add(new Node(2, 2, true, 5));
-
-
-
-        // checking
-        edges = addEdges(nodes, 10);
-
-        connected = isConnected(edges);
-        ans = dijkstra(edges, 3, 1);
-
-
-
-
-        System.out.println(connected);
-        for (Node node : nodes) {
-            System.out.println(node.toString());
-        }
-        for (int i = 0; i < edges.size(); i++) {
-            List<Edge> edge = edges.get(i);
-            for (Edge edg : edge) {
-                System.out.println("Edge from Node " + i + " to Node " + edg.getTO() + " has transmission cost: " + edg.getTr());
-            }
-        }
-        for (int node : adjList.keySet()) {
-            List<Integer> neighbors = adjList.get(node);
-            System.out.print("Node " + node + " is adjacent to: ");
-            for (int neighbor : neighbors) {
-                System.out.print(neighbor + " ");
-            }
-            System.out.println(); 
-        }
-
-        for(int i : ans)
-        {
-            System.out.println(i);
-            
-        }
-        
-    System.out.println(ans);
-
-}
+    
 }
