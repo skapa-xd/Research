@@ -11,7 +11,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.Stack;
 
-public class test {
+public class test2 {
     public static List<Node> generateNodes(int width, int length, int sensorNodes, int dataNodes)
     {
         Set<Integer> dataNodeSet = new HashSet<>(); // To store the dataNode ID
@@ -120,13 +120,9 @@ public class test {
         minHeap.offer(start);
 
         while (!minHeap.isEmpty()) {
-
             int currentNode = minHeap.poll();
-            
 
             for (Edge edge : adjacencyList.get(currentNode)) {
-                
-
                 int neighbor = edge.getTO();
                 double weight = edge.getTr();
 
@@ -168,18 +164,6 @@ public class test {
         return total;
     }
     
-
-// TODO - try and implement getPointRadiusAway.
-public static int[] getPointFiveUnitsAway(double x1, double y1, double x2, double y2) {
-    double distanceAB = distance(x1, y1, x2, y2); // Calculate the distance between points A and B
-
-    // Calculate the coordinates of point C, which is 5 units away from point A
-    double ratio = 5 / distanceAB;
-    int x = (int) (x1 + ratio * (x2 - x1));
-    int y = (int) (y1 + ratio * (y2 - y1));
-
-    return new int[]{x, y};
-}
    
 
 
