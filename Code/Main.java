@@ -1,52 +1,65 @@
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+
+import java.util.*;
 
 public class Main 
-{   
-    public static void main(String[] args) 
-    {
-        SensorNetwork network = new SensorNetwork();
-        
+{
+    public static void main(String[] args) {
+        Network network = new Network();
+        Algorithms algorithms = new Algorithms();
+        int totalPacketsAvailable = 0;
 
-        List<Node> nodes = new ArrayList<>();
-        List<List<Edge>> edges = new ArrayList<>();
-        Map<Integer, List<Integer>> adjList = new HashMap<>();
-        boolean connected;
-        List<Integer> ans = new ArrayList<>();
-        double cost;
+       List<Node> nodes =  network.generateNodes(2000, 2000, 200, 100); 
 
-        nodes = network.generateNodes(10, 10, 10, 5);
-        edges = network.addEdges(nodes, 5);
-        connected = network.isConnected(edges);
-        ans = network.dijkstra(edges, 1, 9);
-        cost = network.totalEnergy(edges, ans);
+       /* List<Node> nodes = new ArrayList<>();
+        nodes.add(new Node(0, 0, false, 0));
+       nodes.add(new Node(1, 2, true, 60));
+       nodes.add(new Node(3, 2, true, 90));
+       nodes.add(new Node(2, 3, true, 880));
+       nodes.add(new Node(1, 4, true, 710));
+       nodes.add(new Node(3, 5, true, 40));
+       nodes.add(new Node(4, 6, true, 70));
+       nodes.add(new Node(5, 2, true, 10));
+       nodes.add(new Node(2, 6, true, 30));
+       nodes.add(new Node(4, 4, true, 100)); */
 
+       Map<Node, Double> shortest = new HashMap<>();
 
+       network.addEdges(nodes, 300, 300);
+       shortest = network.findShortestPaths(nodes, nodes.get(0));
 
-        System.out.println(connected);
-        for (Node node : nodes) {
-            System.out.println(node.toString());
-        }
-        for (int i = 0; i < edges.size(); i++) {
-            List<Edge> edge = edges.get(i);
-            for (Edge edg : edge) {
-                System.out.println("Edge from Node " + i + " to Node " + edg.getTO() + " has transmission cost: " + edg.getTr());
-            }
-        }
-        for (int node : adjList.keySet()) {
-            List<Integer> neighbors = adjList.get(node);
-            System.out.print("Node " + node + " is adjacent to: ");
-            for (int neighbor : neighbors) {
-                System.out.print(neighbor + " ");
-            }
-            System.out.println(); 
-        }
-        System.out.println(ans);
-        System.out.println(cost);
+       for(Node node : nodes)
+       {
+            node.nodeInfo();
+       }
 
-}
-}
+       for(Node node: shortest.keySet())
+       {
+            double cost = shortest.get(node);
+            System.out.println("Shortest path to Node " + node.getID() + ": " + cost);
+       }
+
+       for(Node node : nodes)
+       {
+          totalPacketsAvailable =  totalPacketsAvailable + node.getDataPackets();
+       }
+
+      
+       System.out.println(totalPacketsAvailable);
+
+       //algorithms.greedy1TSP(nodes, 0, 1000000);
+      
+       //algorithms.greedy2TSP(nodes, 0, 1000000);
+       System.out.println("**************G1**********");
+       algorithms.greedy1CSP(nodes, 0, 1000000); 
+       System.out.println("**************G2**********");
+       algorithms.greedy2CSP(nodes, 0, 1000000); 
+      //  algorithms.greedy1CSPprizeQuota(nodes, 0, 1000000, totalPacketsAvailable);
+      
+      System.out.println("**************P1**********");
+       algorithms.pollingPapproach(nodes, 0, 2000);
+       
+    }
     
+}
+
 
