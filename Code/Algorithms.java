@@ -53,13 +53,13 @@ public class Algorithms
         System.out.println(Cost);
         System.out.println(Prize);
         System.out.println(Budget);
- }
+    }
 
  
 
- public void greedy2TSP(List<Node> nodes, int start, double budget)
- {
-    Network network = new Network();
+    public void greedy2TSP(List<Node> nodes, int start, double budget)
+    {
+        Network network = new Network();
         double Budget = budget*0.002;
         List<Integer> Route  = new ArrayList<>();
         HashSet<Node> Unvisited = new HashSet<>(nodes);
@@ -96,217 +96,105 @@ public class Algorithms
         System.out.println(Cost);
         System.out.println(Prize);
         System.out.println(Budget);
- }
-
- public void greedy1CSP(List<Node> nodes, int start, double budget)
-{
-    Network network = new Network();
-
-    double Budget = budget*0.002;
-    List<Integer> Route  = new ArrayList<>();
-    HashSet<Node> Unvisited = new HashSet<>(nodes);
-    HashSet<Node> Collected = new HashSet<>();
-    int Prize = 0;
-    double Cost = 0;
-
-    
-    Node s = nodes.get(start);
-    Node curr = nodes.get(start);
-    Unvisited.remove(curr);
-    Route.add(curr.getID());
-    Collected.add(curr);
-
-    HashMap<Node, Double> shortestPaths = network.findShortestPaths(nodes, curr);
-
-    while(!Unvisited.isEmpty() && network.feasibleSet(curr, Budget, shortestPaths, Unvisited)!= null)
-    {
-        Node node = network.bestPrizeNodeCSP(curr, Budget, shortestPaths, Unvisited, Collected);
-        if(node == null)
-        {
-            break;
-        }
-        Route.add(node.getID());
-        Cost = Cost + node.getNeighbor(curr);
-        Prize = Prize  + node.getDP();
-        Budget = Budget - node.getNeighbor(curr);
-        Collected.add(node);
-        Unvisited.remove(node);
-        Collected.addAll(node.getRangeNeighborList());
-        curr = node;
     }
-    
-    Route.add(s.getID());
-    Cost = Cost + shortestPaths.get(curr);
-    Budget = Budget - shortestPaths.get(curr);
 
-    System.out.println("Collected :" + Prize);
-    System.out.println("Collected from :" + Collected.size());
-    System.out.println(Route);
-    System.out.println("Visited: " + (nodes.size() - Unvisited.size()));
-}
-
-public void greedy2CSP(List<Node> nodes, int start, double budget)
-{
-    Network network = new Network();
-    double Budget = budget*0.002;
-    List<Integer> Route  = new ArrayList<>();
-    HashSet<Node> Unvisited = new HashSet<>(nodes);
-    HashSet<Node> Collected = new HashSet<>();
-    int Prize = 0;
-    double Cost = 0;
-
-    
-    Node s = nodes.get(start);
-    Node curr = nodes.get(start);
-    Unvisited.remove(curr);
-    Collected.add(curr);
-    Route.add(curr.getID());
-    
-
-    HashMap<Node, Double> shortestPaths = network.findShortestPaths(nodes, curr);
-
-    while(!Unvisited.isEmpty() && network.feasibleSet(curr, Budget, shortestPaths, Unvisited)!= null)
+    public void greedy1CSP(List<Node> nodes, int start, double budget)
     {
-        Node node = network.bestPrizeCostRatioNodeCSP(curr, Budget, shortestPaths, Unvisited, Collected);
-       
-        if(node == null)
+        Network network = new Network();
+
+        double Budget = budget*0.002;
+        List<Integer> Route  = new ArrayList<>();
+        HashSet<Node> Unvisited = new HashSet<>(nodes);
+        HashSet<Node> Collected = new HashSet<>();
+        int Prize = 0;
+        double Cost = 0;
+
+        
+        Node s = nodes.get(start);
+        Node curr = nodes.get(start);
+        Unvisited.remove(curr);
+        Route.add(curr.getID());
+        Collected.add(curr);
+
+        HashMap<Node, Double> shortestPaths = network.findShortestPaths(nodes, curr);
+
+        while(!Unvisited.isEmpty() && network.feasibleSet(curr, Budget, shortestPaths, Unvisited)!= null)
         {
-            break;
+            Node node = network.bestPrizeNodeCSP(curr, Budget, shortestPaths, Unvisited, Collected);
+            if(node == null)
+            {
+                break;
+            }
+            Route.add(node.getID());
+            Cost = Cost + node.getNeighbor(curr);
+            Prize = Prize  + node.getDP();
+            Budget = Budget - node.getNeighbor(curr);
+            Collected.add(node);
+            Unvisited.remove(node);
+            Collected.addAll(node.getRangeNeighborList());
+            curr = node;
         }
-        Route.add(node.getID());
-        Cost = Cost + node.getNeighbor(curr);
-        Prize = Prize + node.getDP2();
-        Budget = Budget- node.getNeighbor(curr);
-        Collected.add(node);
-        Collected.addAll(node.getRangeNeighborList());
-        Unvisited.remove(node);
+        
+        Route.add(s.getID());
+        Cost = Cost + shortestPaths.get(curr);
+        Budget = Budget - shortestPaths.get(curr);
+
+        System.out.println("Collected :" + Prize);
+        System.out.println("Collected from :" + Collected.size());
+        System.out.println(Route);
+        System.out.println("Visited: " + (nodes.size() - Unvisited.size()));
+    }
+
+    public void greedy2CSP(List<Node> nodes, int start, double budget)
+    {
+        Network network = new Network();
+        double Budget = budget*0.002;
+        List<Integer> Route  = new ArrayList<>();
+        HashSet<Node> Unvisited = new HashSet<>(nodes);
+        HashSet<Node> Collected = new HashSet<>();
+        int Prize = 0;
+        double Cost = 0;
+
+        
+        Node s = nodes.get(start);
+        Node curr = nodes.get(start);
+        Unvisited.remove(curr);
+        Collected.add(curr);
+        Route.add(curr.getID());
         
 
-        curr = node;
-    }
-    Route.add(s.getID());
-    Cost = Cost + shortestPaths.get(curr);
-    Budget = Budget - shortestPaths.get(curr);
+        HashMap<Node, Double> shortestPaths = network.findShortestPaths(nodes, curr);
 
-    System.out.println("Collected :" + Prize);
-    System.out.println("Collected from :" + Collected.size());
-    System.out.println(Route);
-    System.out.println("Visited: " + (nodes.size() - Unvisited.size()));
-    
-    System.out.println(Budget);
-    
-}
-
- // Prize quota added
-public void greedy1CSPprizeQuota(List<Node> nodes, int start, double budget, int prize)
-{
-    Network network = new Network();
-
-    double Budget = budget*0.002;
-    List<Integer> Route  = new ArrayList<>();
-    HashSet<Node> Unvisited = new HashSet<>(nodes);
-    HashSet<Node> Collected = new HashSet<>();
-    int Prize = 0;
-    double Cost = 0;
-
-    
-    Node s = nodes.get(start);
-    Node curr = nodes.get(start);
-    Unvisited.remove(curr);
-    Route.add(curr.getID());
-    Collected.add(curr);
-
-    HashMap<Node, Double> shortestPaths = network.findShortestPaths(nodes, curr);
-
-    while(!Unvisited.isEmpty() && network.feasibleSet(curr, Budget, shortestPaths, Unvisited)!= null && Prize != prize)
-    {
-        Node node = network.bestPrizeNodeCSP(curr, Budget, shortestPaths, Unvisited, Collected);
-        if(node == null)
+        while(!Unvisited.isEmpty() && network.feasibleSet(curr, Budget, shortestPaths, Unvisited)!= null)
         {
-            break;
-        }
-        Route.add(node.getID());
-        Cost = Cost + node.getNeighbor(curr);
-        Prize = Prize  + node.getDP();
-        Budget = Budget - node.getNeighbor(curr);
-        Collected.add(node);
-        Unvisited.remove(node);
-        for(Node n: node.getRangeNeighborList())
-        {
-            Budget = Budget - (n.getDataPackets() * 3200)/1000000000;
-            Collected.add(n);
-        }
-        curr = node;
-    }
-    
-    Route.add(s.getID());
-    Cost = Cost + shortestPaths.get(curr);
-    Budget = Budget - shortestPaths.get(curr);
-
-    System.out.println(Route);
-    System.out.println(Cost);
-    System.out.println(Prize);
-    System.out.println(Budget);
-}
-
-public void pollingPapproach(List<Node> nodes, int start, int threshold)
-{
-    Network network = new Network();
-
-    
-    List<Integer> Route  = new ArrayList<>(); // change from Intot node
-    HashSet<Node> Unvisited = new HashSet<>(nodes);
-    HashSet<Node> Candidates = new HashSet<>(nodes);
-    
-    int covered = 0;
-    int data = 0;
-    double cost = 0;
-    
-    Node curr = nodes.get(0);
-    Candidates.remove(curr);
-    Unvisited.remove(curr);
-    Route.add(curr.getID());
-    HashMap<Node, Double> shortestPaths = network.findShortestPaths(nodes, curr);
-
-    
-
-    while(!Unvisited.isEmpty())
-    {
-
-        Node node = network.pollingNode(curr, Unvisited, Candidates);
-
-        if(cost + shortestPaths.get(node) >= threshold)
-        {
-            break;
-        }
-        if(node == null)
-        {
-            break;
-        }
-        Route.add(node.getID());
-        cost = cost + curr.getNeighbor(node);
-        Candidates.remove(node);
-       data = data + node.getTotalDataPackets();
-       
-        for(Node n : node.getRangeNeighborList())
-        {
-            if(Unvisited.contains(n))
+            Node node = network.bestPrizeCostRatioNodeCSP(curr, Budget, shortestPaths, Unvisited, Collected);
+        
+            if(node == null)
             {
-                covered++;
-                data = data - n.getDataPackets();
-                
-            }       
-        }
-        Unvisited.removeAll(node.getRangeNeighborList());
-        curr = node;
-    }
-    
-    System.out.println(data);
-    System.out.println(covered);
-    System.out.println(Route);
- }
+                break;
+            }
+            Route.add(node.getID());
+            Cost = Cost + node.getNeighbor(curr);
+            Prize = Prize + node.getDP2();
+            Budget = Budget- node.getNeighbor(curr);
+            Collected.add(node);
+            Collected.addAll(node.getRangeNeighborList());
+            Unvisited.remove(node);
+            
 
- 
- 
-    
+            curr = node;
+        }
+        Route.add(s.getID());
+        Cost = Cost + shortestPaths.get(curr);
+        Budget = Budget - shortestPaths.get(curr);
+
+        System.out.println("Collected :" + Prize);
+        System.out.println("Collected from :" + Collected.size());
+        System.out.println(Route);
+        System.out.println("Visited: " + (nodes.size() - Unvisited.size()));
+        
+        System.out.println(Budget);
+        
+    }
+
 }

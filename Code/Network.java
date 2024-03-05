@@ -15,31 +15,41 @@ public class Network
         return random.nextInt(max - min) + min;
     }
 
-    public List<Node> generateNodes(int width, int length, int totalNodes, int dataNodes) // generates nodes randomly in the given sensor network parameters
+    public List<Node> generateNodes(int width, int length, int totalNodes, int dataNodes, int tr) // generates nodes randomly in the given sensor network parameters
     {
         Set<Integer> dataNodeSet = new HashSet<>(); // To store the dataNode ID
         Random random = new Random();
         List<Node> nodes = new ArrayList<>(); // stores all nodes 
+        nodes.add(new Node(0, 0, false, 0)); // start node at 0,0
         
         while (dataNodeSet.size() < dataNodes) // generates nodes with data given by dataNodes
         { 
             int randomNode = getRandomNumberUsingNextInt(1, totalNodes-1);
             dataNodeSet.add(randomNode);
         }
-        for (int i = 0; i < totalNodes; i++) {
+        for (int i = 1; i < totalNodes; i++) {
             Node node; // create a new node
-            int x;
-            int y;
-            if( i == 0)
+            int x= 0;
+            int y= 0;
+            boolean isValidLocation = false;
+            
+            while (!isValidLocation) 
             {
-                x = 0;
-                y = 0;
+                x = random.nextInt(width + 1); 
+                y = random.nextInt(length + 1);
+                isValidLocation = true; 
+
+                for (Node existingNode : nodes) 
+                {
+                    double distance = distance(x, y, existingNode.getX(), existingNode.getY());
+                    if (distance <= tr) 
+                    {
+                        isValidLocation = false; // Too close to an existing node, regenerate
+                        break;
+                    }
+                }
             }
-            else
-            {
-                x = random.nextInt(width + 1); // Generate a random x-coordinate
-                y = random.nextInt(length + 1); // Generate a random y-coordinate
-            }
+            
             
             int data = getRandomNumberUsingNextInt(500, 1000); // DataNodes can hold dataPackets from 500 to 1000
 
@@ -229,39 +239,7 @@ public class Network
         return best;
     } 
 
-    public Node pollingNode(Node curr, HashSet<Node> unvisited, HashSet<Node> candidates)
-    {
-        double alpha = Double.MAX_VALUE;
-        Node bestNode = null;
-
-        for(Node node : curr.getNeighborsList())
-        { 
-            if(candidates.contains(node))
-            {
-                Set<Node> nb = new HashSet<>(node.getNeighborsList());
-                double cost = curr.getNeighbor(node);
-                double avgCost = cost / intersection(nb, unvisited).size();
-                if (avgCost < alpha) {
-                    alpha = avgCost;
-                    bestNode = node;
-                }
-                
-            }
-            
-        }
-        
-        return bestNode;
-    }
-
-      public  Set<Node> intersection(Set<Node> a, Set<Node> b) {
-        Set<Node> intersection = new HashSet<>();
-        for (Node node : a) {
-          if (b.contains(node)) {
-            intersection.add(node);
-          }
-        }
-        return intersection;
-      }
+   
 
     
     

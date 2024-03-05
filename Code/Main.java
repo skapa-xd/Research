@@ -3,12 +3,14 @@ import java.util.*;
 
 public class Main 
 {
-    public static void main(String[] args) {
+    public static void main(String[] args) 
+    {
         Network network = new Network();
         Algorithms algorithms = new Algorithms();
+        
         int totalPacketsAvailable = 0;
-
-       List<Node> nodes =  network.generateNodes(2000, 2000, 200, 100); 
+        List<Node> nodes =  network.generateNodes(2000, 2000, 200, 100, 50); 
+        Visualizer visualize = new Visualizer(nodes, 2000, 2000);
 
        /* List<Node> nodes = new ArrayList<>();
         nodes.add(new Node(0, 0, false, 0));
@@ -44,19 +46,28 @@ public class Main
        }
 
       
-       System.out.println(totalPacketsAvailable);
+       System.out.println("Total Packets Available to Collect: " + totalPacketsAvailable);
 
-       //algorithms.greedy1TSP(nodes, 0, 1000000);
-      
-       //algorithms.greedy2TSP(nodes, 0, 1000000);
-       System.out.println("**************G1**********");
+       System.out.println("Greedy 1 TSP");
+       algorithms.greedy1TSP(nodes, 0, 1000000);
+       System.out.println("-----------------------------");
+
+       System.out.println("Greedy 2 TSP");
+       algorithms.greedy2TSP(nodes, 0, 1000000);
+       System.out.println("-----------------------------");
+       
+       System.out.println("Greedy 1 CSP");
        algorithms.greedy1CSP(nodes, 0, 1000000); 
-       System.out.println("**************G2**********");
+       System.out.println("-----------------------------");
+
+       System.out.println("Greedy 2 CSP");
        algorithms.greedy2CSP(nodes, 0, 1000000); 
-      //  algorithms.greedy1CSPprizeQuota(nodes, 0, 1000000, totalPacketsAvailable);
+       System.out.println("-----------------------------");
+
+       visualize.run();
+
+       
       
-      System.out.println("**************P1**********");
-       algorithms.pollingPapproach(nodes, 0, 2000);
        
     }
     
