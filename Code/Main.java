@@ -1,4 +1,5 @@
 
+import java.io.IOException;
 import java.util.*;
 
 public class Main 
@@ -7,10 +8,14 @@ public class Main
     {
         Network network = new Network();
         Algorithms algorithms = new Algorithms();
+        NetworkToText write = new NetworkToText();
         
         int totalPacketsAvailable = 0;
-        List<Node> nodes =  network.generateNodes(2000, 2000, 200, 100, 50); 
-        Visualizer visualize = new Visualizer(nodes, 2000, 2000);
+        String fileName = "node_info.txt";
+
+        // Modified for new Network
+        List<Node> nodes =  network.generateNodes(10000, 10000, 100, 100); 
+        Visualizer visualize = new Visualizer(nodes, 10000, 10000);
 
        /* List<Node> nodes = new ArrayList<>();
         nodes.add(new Node(0, 0, false, 0));
@@ -26,7 +31,7 @@ public class Main
 
        Map<Node, Double> shortest = new HashMap<>();
 
-       network.addEdges(nodes, 300, 300);
+       network.addEdges(nodes, 150, 150);
        shortest = network.findShortestPaths(nodes, nodes.get(0));
 
        for(Node node : nodes)
@@ -48,7 +53,7 @@ public class Main
       
        System.out.println("Total Packets Available to Collect: " + totalPacketsAvailable);
 
-       System.out.println("Greedy 1 TSP");
+       /* System.out.println("Greedy 1 TSP");
        algorithms.greedy1TSP(nodes, 0, 1000000);
        System.out.println("-----------------------------");
 
@@ -62,9 +67,21 @@ public class Main
 
        System.out.println("Greedy 2 CSP");
        algorithms.greedy2CSP(nodes, 0, 1000000); 
-       System.out.println("-----------------------------");
+       System.out.println("-----------------------------"); */
 
        visualize.run();
+
+       /* try 
+       {
+          write.writeToFile(nodes, fileName);
+          System.out.println("Node information written to " + fileName);
+       } 
+       catch (IOException e) 
+       {
+          System.err.println("Error writing to file: " + e.getMessage());
+       } */
+
+
 
        
       

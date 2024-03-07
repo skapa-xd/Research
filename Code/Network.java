@@ -15,23 +15,18 @@ public class Network
         return random.nextInt(max - min) + min;
     }
 
-    public List<Node> generateNodes(int width, int length, int totalNodes, int dataNodes, int tr) // generates nodes randomly in the given sensor network parameters
+    public List<Node> generateNodes(int width, int length, int totalNodes, int tr) // generates nodes randomly in the given sensor network parameters
     {
-        Set<Integer> dataNodeSet = new HashSet<>(); // To store the dataNode ID
         Random random = new Random();
         List<Node> nodes = new ArrayList<>(); // stores all nodes 
         nodes.add(new Node(0, 0, false, 0)); // start node at 0,0
-        
-        while (dataNodeSet.size() < dataNodes) // generates nodes with data given by dataNodes
-        { 
-            int randomNode = getRandomNumberUsingNextInt(1, totalNodes-1);
-            dataNodeSet.add(randomNode);
-        }
+    
         for (int i = 1; i < totalNodes; i++) {
             Node node; // create a new node
             int x= 0;
             int y= 0;
             boolean isValidLocation = false;
+            
             
             while (!isValidLocation) 
             {
@@ -51,12 +46,12 @@ public class Network
             }
             
             
-            int data = getRandomNumberUsingNextInt(500, 1000); // DataNodes can hold dataPackets from 500 to 1000
+            int data = getRandomNumberUsingNextInt(0,100); // DataNodes can hold dataPackets from 500 to 1000
 
-            if (dataNodeSet.contains(i)) { // assigns identification like data node or storage node
-                node = new Node(x, y, true, data); // Data node
+            if (data == 0) { 
+                node = new Node(x, y, false, data); 
             } else {
-                node = new Node(x, y, false, 0); // Storage Node
+                node = new Node(x, y, true, data); 
             }
             nodes.add(node);
         }
@@ -70,9 +65,6 @@ public class Network
 
     public void addEdges(List<Node> nodes, int Tr, int radius) // creates the graph
     {
-       
-       
-
         for (int i = 0; i < nodes.size(); i++) 
         {
             for (int j = i + 1; j < nodes.size(); j++) 
