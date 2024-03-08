@@ -31,7 +31,7 @@ public class Main
 
        Map<Node, Double> shortest = new HashMap<>();
 
-       network.addEdges(nodes, 150, 150);
+       network.addEdges(nodes, 150);
        shortest = network.findShortestPaths(nodes, nodes.get(0));
 
        for(Node node : nodes)
@@ -69,7 +69,6 @@ public class Main
        algorithms.greedy2CSP(nodes, 0, 1000000); 
        System.out.println("-----------------------------"); */
 
-       visualize.run();
 
        /* try 
        {
@@ -80,6 +79,10 @@ public class Main
        {
           System.err.println("Error writing to file: " + e.getMessage());
        } */
+
+       algorithms.gTSP1(nodes, 0,340);
+       visualize.run();
+
 
 
 

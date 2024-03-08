@@ -158,8 +158,8 @@ public class Node
 
     public void nodeInfo() // prints the node information
     {
-        String s  = String.format("Node id: %d {x: %d} {y: %d} {is data node: %b} {data packets: %2d} {total data packets: %2d} {Neighbors List: %s} {Range Neighbor: %s}",
-        getID(), getX(), getY(), isDataNode(), getDataPackets(), getTotalDataPackets(), Arrays.toString(getNeighbors().toArray()), Arrays.toString(getRangeNeighbors().toArray()));
+        String s  = String.format("Node id: %d {x: %d} {y: %d} {is data node: %b} {data packets: %2d} {total data packets: %2d} {Range Neighbor: %s}",
+        getID(), getX(), getY(), isDataNode(), getDataPackets(), getTotalDataPackets(), Arrays.toString(getRangeNeighbors().toArray()));
         System.out.println(s);
     }
 
