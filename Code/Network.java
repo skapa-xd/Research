@@ -63,19 +63,20 @@ public class Network
         return (Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2))); 
     }
 
-    public void addEdges(List<Node> nodes, int Tr, int radius) // creates the graph
+    public void addEdges(List<Node> nodes, int CSPradius) // creates the graph
     {
         for (int i = 0; i < nodes.size(); i++) 
         {
             for (int j = i + 1; j < nodes.size(); j++) 
             { 
                 double d =  Math.round(distance(nodes.get(i).getX(), nodes.get(i).getY(), nodes.get(j).getX(), nodes.get(j).getY()) * 100.0) / 100.0;
-                if (d <= Tr)  // if d is less than transmission range, there is a connection, here Tr is transmission range of sensor nodes.
-                {
-                    nodes.get(i).setNeighbor(nodes.get(j), d);
-                    nodes.get(j).setNeighbor(nodes.get(i), d);  
-                }
-                if(d<= radius) // FOR CSP
+
+                
+                nodes.get(i).setNeighbor(nodes.get(j), d);
+                nodes.get(j).setNeighbor(nodes.get(i), d); 
+                     
+                
+                if(d<= CSPradius) // FOR CSP
                 {
                     nodes.get(i).setRangeNeighbor(nodes.get(j), nodes.get(j).getDataPackets());
                     nodes.get(j).setRangeNeighbor(nodes.get(i), nodes.get(i).getDataPackets());
@@ -134,6 +135,15 @@ public class Network
             }
         }
         return feasible;
+    }
+
+    public boolean isFeasible(Node curr, Node next,  double budget, HashMap<Node, Double> shortestPaths, HashSet<Node> unvisited)
+    {
+        if(budget >= (curr.getNeighbor(next) + shortestPaths.get(next))*100 && unvisited.contains(next))
+        {
+            return true;
+        }
+        return false;
     }
 
     public Node prizeCostRatio(Node current, double budget, HashMap<Node, Double> shortestPaths, HashSet<Node> unvisited)
