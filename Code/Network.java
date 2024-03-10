@@ -153,9 +153,9 @@ public class Network
 
         for(Node node: current.getNeighborsList())
         {
-            if(feasibleSet(current, budget, shortestPaths, unvisited).contains(node))
+            if(isFeasible(current,node, budget, shortestPaths, unvisited))
             {
-                double ratio = (double)node.getDataPackets()/node.getNeighbor(current);
+                double ratio = (double)node.getDataPackets()/current.getNeighbor(node);
                 if(ratio>bestRatio)
                 {
                     bestRatio = ratio;
