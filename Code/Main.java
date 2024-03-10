@@ -15,7 +15,7 @@ public class Main
 
         // Modified for new Network
         List<Node> nodes =  network.generateNodes(10000, 10000, 100, 100); 
-        Visualizer visualize = new Visualizer(nodes, 10000, 10000);
+        
 
        /* List<Node> nodes = new ArrayList<>();
         nodes.add(new Node(0, 0, false, 0));
@@ -80,7 +80,9 @@ public class Main
           System.err.println("Error writing to file: " + e.getMessage());
        } */
 
-       algorithms.gTSP1(nodes, 0,340);
+       List<Integer> route1 = algorithms.gTSP1(nodes, 0,1000);
+       List<Integer> route2 =  algorithms.gTSP2(nodes, 0, 1000);
+       Visualizer visualize = new Visualizer(nodes, 10000, 10000, route1, route2);
        visualize.run();
 
 
