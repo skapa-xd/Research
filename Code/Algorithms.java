@@ -55,8 +55,6 @@ public class Algorithms
         System.out.println(Budget);
     }
 
- 
-
     public void greedy2TSP(List<Node> nodes, int start, double budget)
     {
         Network network = new Network();
@@ -198,8 +196,7 @@ public class Algorithms
     }
 
     // New Geometeric TSP
-
-    public void gTSP1(List<Node> nodes, int start, double budget)
+    public List<Integer> gTSP1(List<Node> nodes, int start, double budget)
     {
         Network network = new Network();
 
@@ -248,8 +245,50 @@ public class Algorithms
         System.out.println("Data Collected: " + Prize);
         System.out.println("Budget Reamining: " + Budget);
 
+        return Route;
+ }
 
+ public List<Integer> gTSP2(List<Node> nodes, int start, double budget)
+ {
+    Network network = new Network();
 
+    double Budget = budget * 3600; // budget will be given in Kilo Watt Hours, so this converts it to joules
+    double Cost = 0;
+    int Prize = 0;
+    List<Integer> Route = new ArrayList<>();
+    HashSet<Node> Unvisited = new HashSet<>(nodes);
+
+    Node base = nodes.get(0);
+    Node curr = base;
+    Route.add(base.getID());
+    Unvisited.remove(base);
+
+    HashMap<Node, Double> shortestPaths = network.findShortestPaths(nodes, curr);
+
+    while(!Unvisited.isEmpty() && network.feasibleSet(curr, Budget, shortestPaths, Unvisited)!= null)
+        {
+            Node node = network.prizeCostRatio(curr, Budget, shortestPaths, Unvisited);
+            if(node == null)
+            {
+                break;
+            }
+            Route.add(node.getID());
+            Cost = Cost + node.getNeighbor(curr);
+            Prize = Prize + node.getDataPackets();
+            Budget = Budget- node.getNeighbor(curr)*100;
+            Unvisited.remove(node);
+            curr = node;
+        }
+        Route.add(base.getID());
+        Cost = Cost + shortestPaths.get(curr);
+        Budget = Budget - shortestPaths.get(curr)*100;
+
+        System.out.println("Route: " + Route);
+        System.out.println("Cost: " + Cost);
+        System.out.println("Data Collected: " + Prize);
+        System.out.println("Budget Reamining: " + Budget);
+
+        return Route;
     }
 
 }
