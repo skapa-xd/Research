@@ -24,14 +24,15 @@ public class Visualizer extends JPanel implements Runnable {
     private int ovalSize = 6;
     private List<Integer> route1;
     private List<Integer> route2;
+    private List<Integer> route3;
 
-
-    public Visualizer(List<Node> nodes, double width, double height, List<Integer> route1, List<Integer> route2) {
+    public Visualizer(List<Node> nodes, double width, double height, List<Integer> route1, List<Integer> route2, List<Integer> route3) {
         this.nodes = nodes;
         this.graphWidth = width;
         this.graphHeight = height;
         this.route1 = route1;
         this.route2 = route2;
+        this.route3 = route3;
         invalidate();
         repaint();
     }
@@ -101,6 +102,15 @@ public class Visualizer extends JPanel implements Runnable {
             Point point2 = graphPoints.get(nodeIndex2);
             g2.drawLine(point1.x, point1.y, point2.x, point2.y);
             }
+
+        g2.setColor(Color.MAGENTA);
+            for (int j = 0; j < route3.size() - 1; j++) {
+            int nodeIndex1 = route3.get(j);
+            int nodeIndex2 = route3.get(j + 1);
+            Point point1 = graphPoints.get(nodeIndex1);
+            Point point2 = graphPoints.get(nodeIndex2);
+            g2.drawLine(point1.x, point1.y, point2.x, point2.y);
+        }
         
     }
 
