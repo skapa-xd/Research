@@ -76,14 +76,14 @@ public class Network
                 nodes.get(j).setNeighbor(nodes.get(i), d); 
                      
                 
-                if(d<= CSPradius) // FOR CSP
+                /* if(d<= CSPradius) // FOR CSP
                 {
                     nodes.get(i).setRangeNeighbor(nodes.get(j), nodes.get(j).getDataPackets());
                     nodes.get(j).setRangeNeighbor(nodes.get(i), nodes.get(i).getDataPackets());
-                }
+                } */
             }
         }
-        for(Node node : nodes) // for CSP
+        /* for(Node node : nodes) // for CSP
         {
             int prize = node.getDataPackets();
             for(Node curr : node.getRangeNeighborList())
@@ -91,7 +91,7 @@ public class Network
                 prize = prize + curr.getDataPackets();
             }
             node.setTotalDataPackets(prize);
-        }
+        } */
     
     }
 
@@ -129,7 +129,7 @@ public class Network
 
         for(Node node : current.getNeighborsList())
         {
-            if(budget >= node.getNeighbor(current) + shortestPaths.get(node) && unvisited.contains(node))
+            if(budget >= (node.getNeighbor(current) + shortestPaths.get(node))*100 && unvisited.contains(node))
             {
                 feasible.add(node);
             }
@@ -240,6 +240,100 @@ public class Network
         
         return best;
     } 
+
+    public Node yangsNode(Node current, double budget, HashMap<Node, Double> shortestPaths, HashSet<Node> unvisited)
+    {
+        double dist = Double.MAX_VALUE;
+        Node bestNode = null;
+
+        for(Node node : current.getNeighborsList())
+        {
+            if(isFeasible(current, node, budget, shortestPaths, unvisited))
+            {
+                double d = current.getNeighbor(node);
+                if(d<dist)
+                {
+                    dist = d;
+                    bestNode = node;
+                }
+            }
+        }
+
+        return bestNode;
+    }
+
+    public Node nodeSelection(double tradeoff, Agent agent,Table table, HashMap<Node, Double> shortestPath)
+    {
+        Random random = new Random();
+        double rand = random.nextDouble();
+        
+        double delta = 1;
+        double beta = 2;
+
+        if(rand <= tradeoff)
+        { 
+            // Exploitation
+            double maxQ = Double.NEGATIVE_INFINITY;
+            Node ans = null;
+            for(Node node : agent.agentFeasibleSet())
+            {
+                double qVal = table.getQvalue(agent.getCurrent().getID(), node.getID());
+                int data = node. getDataPackets();
+                double cost = agent.getCurrent().getNeighbor(node);
+                double cal = (Math.pow(qVal, delta) * data)/Math.pow(cost, beta);
+
+
+                if(cal > maxQ )
+                {
+                    maxQ = cal;
+                    ans = node;
+                }
+            }
+            
+            return ans;
+            
+        }
+        else
+        {
+            List<Node> feasibleNodes = new ArrayList<>(agent.agentFeasibleSet());
+
+            int randM = random.nextInt(feasibleNodes.size());
+            
+            return feasibleNodes.get(randM);
+            
+        }
+    
+    }
+
+    public boolean isAnyAgentActive(List<Agent> agents)
+    {
+        for(Agent agent : agents)
+        {
+            if(agent.isDone() == false)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public Agent bestAgent(List<Agent> agents)
+    {
+        Agent best = null;
+        int dataPackets = 0;
+       
+        for(Agent agent : agents)
+        {
+            int d = agent.getDataPackets();
+            if(d>dataPackets)
+            {
+                dataPackets = d;
+                best = agent;
+            }
+        }
+
+        return best;
+    }
 
    
 
