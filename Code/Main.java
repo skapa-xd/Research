@@ -14,7 +14,7 @@ public class Main
         String fileName = "node_info.txt";
 
         // Modified for new Network
-        List<Node> nodes =  network.generateNodes(1000, 1000, 20, 50); 
+        List<Node> nodes =  network.generateNodes(1000, 1000, 50, 50); 
         
 
        /* List<Node> nodes = new ArrayList<>();
@@ -80,11 +80,12 @@ public class Main
           System.err.println("Error writing to file: " + e.getMessage());
        } */
 
-       List<Integer> route1 = algorithms.gTSP1(nodes, 0,50);
-       List<Integer> route2 =  algorithms.gTSP2(nodes, 0, 50);
-       List<Integer> route3 = algorithms.gYang(nodes, 0, 50);
-       Visualizer visualize = new Visualizer(nodes, 1000, 1000, route1, route2, route3);
-       visualize.run();
+       List<Integer> route1 = algorithms.gTSP1(nodes, 0,100);
+       List<Integer> route2 =  algorithms.gTSP2(nodes, 0, 100);
+       List<Integer> route3 = algorithms.gYang(nodes, 0, 100);
+       //Visualizer visualize = new Visualizer(nodes, 1000, 1000, route1, route2, route3);
+       algorithms.MARL(nodes, 0, 100, 100, 10, 0.1, 0.2, 0.5);
+       //visualize.run();
 
 
 
