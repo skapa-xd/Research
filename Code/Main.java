@@ -11,7 +11,7 @@ public class Main
         NetworkToText write = new NetworkToText();
         
         int totalPacketsAvailable = 0;
-        String fileName = "node_info.txt";
+        String fileName = "node_info_" + System.currentTimeMillis() + ".txt";
 
         // Modified for new Network
         List<Node> nodes =  network.generateNodes(1000, 1000, 50, 50); 
@@ -70,7 +70,7 @@ public class Main
        System.out.println("-----------------------------"); */
 
 
-      /*  try 
+       /* try 
        {
           write.writeToFile(nodes, fileName);
           System.out.println("Node information written to " + fileName);
@@ -83,9 +83,10 @@ public class Main
        List<Integer> route1 = algorithms.gTSP1(nodes, 0,100);
        List<Integer> route2 =  algorithms.gTSP2(nodes, 0, 100);
        List<Integer> route3 = algorithms.gYang(nodes, 0, 100);
-       //Visualizer visualize = new Visualizer(nodes, 1000, 1000, route1, route2, route3);
-       algorithms.MARL(nodes, 0, 100, 100, 10, 0.1, 0.2, 0.5);
-       //visualize.run();
+       List<Integer> route4 = algorithms.MARL(nodes, 0, 100, 1000, 10, 0.5, 0.3, 0.5);
+       Visualizer visualize = new Visualizer(nodes, 1000, 1000, route1, route2, route3, route4);
+       
+       visualize.run();
 
 
 
