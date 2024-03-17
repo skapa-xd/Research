@@ -70,12 +70,12 @@ public class Table
 
     public double getQvalue(int currentNode, int nextNode)
     {
-        return QTable[currentNode][nextNode];
+        return this.QTable[currentNode][nextNode];
     }
 
     public void setQvalue(int currentNode, int nextNode, double value)
     {
-        QTable[currentNode][nextNode] = value;
+        this.QTable[currentNode][nextNode] = value;
     }
 
     public double[] getQmaxActionValue(int state, double budget, HashSet<Node> univisited, HashMap<Node, Double> shortestPaths)
@@ -110,12 +110,12 @@ public class Table
 
     public void updateQvalue(int state, int action, double budget, HashSet<Node> unvisited, HashMap<Node, Double> shortestPaths)
     {
-        QTable[state][action] = (1-learningRate)*(getQvalue(state, action)) + learningRate * discountFactor* getQmaxActionValue(action, budget, unvisited,shortestPaths)[1];
+        this.QTable[state][action] = (1-learningRate)*(getQvalue(state, action)) + learningRate * discountFactor* getQmaxActionValue(action, budget, unvisited,shortestPaths)[1];
     }
 
     public void updateQvalue2(int state, int action)
     {
-        QTable[state][action] = (1-learningRate)*(getQvalue(state, action)) + learningRate * (getRvalue(state, action) + (discountFactor*(getQmaxValue(action))));
+        this.QTable[state][action] = (1-learningRate)*(getQvalue(state, action)) + learningRate * (getRvalue(state, action) + (discountFactor*(getQmaxValue(action))));
     }
 
     public int getQmaxAction(int state)
