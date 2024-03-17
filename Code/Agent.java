@@ -50,6 +50,13 @@ public class Agent
         }
         
     }
+
+    public void terminate()
+    {
+    
+        this.cost = this.cost + shortestPaths.get(this.curr);
+        this.budget = this.budget - shortestPaths.get(this.curr)*100;
+    }
     public double getCost()
     {
         return this.cost;
