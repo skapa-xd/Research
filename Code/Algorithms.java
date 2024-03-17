@@ -2,6 +2,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 
 
 public class Algorithms 
@@ -344,7 +345,7 @@ public class Algorithms
 
     }
 
-    public void MARL(List<Node> nodes, int start, double budget, int episodes, int agents, double learningRate, double discountFactor, double tradeoff)
+    public List<Integer> MARL(List<Node> nodes, int start, double budget, int episodes, int agents, double learningRate, double discountFactor, double tradeoff)
     {
         Network network = new Network();
         Table table = new Table(nodes, nodes.size(), learningRate, discountFactor);
@@ -352,7 +353,7 @@ public class Algorithms
 
        
         HashMap<Node, Double> shortestPaths = new HashMap<>(network.findShortestPaths(nodes, nodes.get(0)));
-    
+        Agent bestest = new Agent(nodes.get(0), budget, false, nodes, shortestPaths);
         
         Node base = nodes.get(start);
         
@@ -379,80 +380,81 @@ public class Algorithms
                             agent.updateBudget(agent.getCurrent(), base);
                             table.updateQvalue(agent.getCurrent().getID(), base.getID(), agent.getBudget(), agent.getUnvisited(), shortestPaths);
                             agent.updateCurrent(base);
-                        }
+                            }
                         else
                         {
-                            Node node = network.nodeSelection(tradeoff, agent, table, shortestPaths);
-                            if (node != null) // Check if node is not null
+                            Random random = new Random();
+                            double rand = random.nextDouble();
+                            Node next;
+
+                            if(rand <= tradeoff)
                             {
-                                agent.addNode(node);
-                                agent.addCost(agent.getCurrent(), node);
-                                agent.updateBudget(agent.getCurrent(), node);
-                                agent.updateData(node);
-                                table.updateQvalue(agent.getCurrent().getID(), node.getID(), agent.getBudget(), agent.getUnvisited(), shortestPaths);
-                                agent.updateUnvisited(node);
-                                agent.updateCurrent(node);
+                                next = network.exploitation(agent, table).entrySet().iterator().next().getKey();
+
                             }
+                            else{
+                                next = network.exploration(agent, table);
+                            }
+                                agent.addNode(next);
+                                agent.addCost(agent.getCurrent(), next);
+                                agent.updateBudget(agent.getCurrent(), next);
+                                agent.updateData(next);
+                                table.updateQvalue(agent.getCurrent().getID(), next.getID(), agent.getBudget(), agent.getUnvisited(), shortestPaths);
+                                agent.updateUnvisited(next);
+                                agent.updateCurrent(next);
+                            
                         }
                     }
                 }
             }
             Agent best = network.bestAgent(allAgents);
-            for(int i = 0; i< best.getRoute().size()-1; i++)
+            if(best.getDataPackets() > bestest.getDataPackets())
             {
-                int state = best.getRoute().get(i);
-                int action = best.getRoute().get(i+1);
+                bestest = best;
+            }
+            for(int i = 0; i< bestest.getRoute().size()-1; i++)
+            {
+                int state = bestest.getRoute().get(i);
+                int action = bestest.getRoute().get(i+1);
 
-                table.updateRValue(state, action, best.getDataPackets());
+                table.updateRValue(state, action, bestest.getDataPackets());
                 table.updateQvalue2(state, action);
             }
+    
             
-            
-            System.out.println("Learning");
             allAgents.clear(); // clears list of agents 
         }
+        System.out.println("----------Learning MARL------------");
+        System.out.println("Route: " + bestest.getRoute());
+        System.out.println("Cost: " + bestest.getCost());
+        System.out.println("Data Collected: " + bestest.getDataPackets());
+        System.out.println("Budget Reamining: " + bestest.getBudget());
+        System.out.println("---------------------------");
+
 
         // execution stage
         Agent bestAgent = new Agent(base, budget, false, nodes, shortestPaths);
 
-        while(bestAgent.isDone()!= true)
+        while(bestAgent.agentFeasibleSet().size()!=0)
         {
-            Node curr = bestAgent.getCurrent();
-            List<Node> feasible = new ArrayList<>(bestAgent.agentFeasibleSet());
-
-            if(feasible.size()==0)
-            {
-                if(curr !=  base)
-                {
-                    bestAgent.addNode(base);
-                    bestAgent.addCost(curr, base);
-                    bestAgent.updateBudget(curr, base);
-                    bestAgent.updateCurrent(base);
-                }
-                else
-                {
-                    bestAgent.updateDone(true);
-                
-                }
-            }
-            else
-            {
-                Node next = nodes.get((int)table.getQmaxActionValue(curr.getID(), bestAgent.getBudget(), bestAgent.getUnvisited(), shortestPaths)[0]);
-                bestAgent.addNode(next);
-                bestAgent.updateUnvisited(next);
-                bestAgent.addCost(curr, next);
-                bestAgent.updateBudget(curr, next);
-                bestAgent.updateData(next);
-                bestAgent.updateCurrent(next);
-            }
+            Node next = nodes.get((int)table.getQmaxActionValue(bestAgent.getCurrent().getID(), bestAgent.getBudget(), bestAgent.getUnvisited(), shortestPaths)[0]);
+            bestAgent.addNode(next);
+            bestAgent.addCost(bestAgent.getCurrent(), next);
+            bestAgent.updateBudget(bestAgent.getCurrent(), next);
+            bestAgent.updateData(next);
+            bestAgent.updateUnvisited(next);
+            bestAgent.updateCurrent(next);  
         }
+        bestAgent.terminate();
 
-        System.out.println("----------MARL------------");
+        System.out.println("----------Execu MARL------------");
         System.out.println("Route: " + bestAgent.getRoute());
         System.out.println("Cost: " + bestAgent.getCost());
         System.out.println("Data Collected: " + bestAgent.getDataPackets());
         System.out.println("Budget Reamining: " + bestAgent.getBudget());
         System.out.println("---------------------------");
+
+        return bestest.getRoute();
 
     }
 
