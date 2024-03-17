@@ -1,7 +1,10 @@
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Random;
 import java.util.Set;
@@ -262,48 +265,69 @@ public class Network
         return bestNode;
     }
 
-    public Node nodeSelection(double tradeoff, Agent agent,Table table, HashMap<Node, Double> shortestPath)
+    public Map<Node, Double> exploitation(Agent a, Table table) 
     {
-        Random random = new Random();
-        double rand = random.nextDouble();
-        
+
         double delta = 1;
-        double beta = 2;
-
-        if(rand <= tradeoff)
-        { 
-            // Exploitation
-            double maxQ = Double.NEGATIVE_INFINITY;
-            Node ans = null;
-            for(Node node : agent.agentFeasibleSet())
-            {
-                double qVal = table.getQvalue(agent.getCurrent().getID(), node.getID());
-                int data = node. getDataPackets();
-                double cost = agent.getCurrent().getNeighbor(node);
-                double cal = (Math.pow(qVal, delta) * data)/Math.pow(cost, beta);
-
-
-                if(cal > maxQ )
-                {
-                    maxQ = cal;
-                    ans = node;
-                }
-            }
-            
-            return ans;
-            
-        }
-        else
+        double beta =2;
+        HashSet<Node> feasibleSet = new HashSet<>(a.agentFeasibleSet());
+        Node curNode = a.getCurrent();
+        Map<Node, Double> d = new HashMap<>();
+        for (Node neighbor : feasibleSet) 
         {
-            List<Node> feasibleNodes = new ArrayList<>(agent.agentFeasibleSet());
-
-            int randM = random.nextInt(feasibleNodes.size());
-            
-            return feasibleNodes.get(randM);
-            
+            double qVal = table.getQvalue(curNode.getID(), neighbor.getID());
+            double cost = curNode.getNeighbor(neighbor);
+            double prize = neighbor.getDataPackets();
+            double res = (Math.pow(qVal, delta) * prize) / Math.pow(cost, beta);
+            d.put(neighbor,res<0?0:res);
         }
-    
+        return sortByValueDescending(d);    
     }
+    private <K, V extends Comparable<? super V>> Map<K, V> sortByValueDescending(Map<K, V> map) 
+    {
+        Map<K, V> sortedMap = new LinkedHashMap<>();
+        map.entrySet()
+           .stream()
+           .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+           .forEachOrdered(entry -> sortedMap.put(entry.getKey(), entry.getValue()));
+        return sortedMap;
+    }
+
+    public Node exploration(Agent agent, Table table) 
+    {
+        double delta = 1;
+        double beta =2;
+        Random random = new Random();
+        List<Node> feasibleSet = new ArrayList<>(agent.agentFeasibleSet());
+        List<Double> probabilities = new ArrayList<>();
+        double total = 0;
+
+        for (Node n : feasibleSet) {
+            double Q = table.getQvalue(agent.getCurrent().getID(), n.getID());
+            double w = agent.getCurrent().getNeighbor(n);
+            double d = n.getDataPackets();
+            double prob = Math.pow(Q, delta) * d / Math.pow(w, beta);
+            probabilities.add(prob);
+            total += prob; // Accumulate total probability
+        }
+
+        // Normalize probabilities
+        for (int i = 0; i < probabilities.size(); i++) {
+            probabilities.set(i, probabilities.get(i) / total);
+        }
+
+        double selectedProbability = random.nextDouble();
+        double cumulativeProbability = 0.0;
+        for (int i = 0; i < probabilities.size(); i++) {
+            cumulativeProbability += probabilities.get(i);
+            if (selectedProbability <= cumulativeProbability) {
+                return feasibleSet.get(i);
+            }
+        }
+        return feasibleSet.get(random.nextInt(0, feasibleSet.size()));
+    }
+
+    
 
     public boolean isAnyAgentActive(List<Agent> agents)
     {
