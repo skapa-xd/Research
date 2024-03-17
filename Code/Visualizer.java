@@ -25,14 +25,16 @@ public class Visualizer extends JPanel implements Runnable {
     private List<Integer> route1;
     private List<Integer> route2;
     private List<Integer> route3;
+    private List<Integer> route4;
 
-    public Visualizer(List<Node> nodes, double width, double height, List<Integer> route1, List<Integer> route2, List<Integer> route3) {
+    public Visualizer(List<Node> nodes, double width, double height, List<Integer> route1, List<Integer> route2, List<Integer> route3, List<Integer> route4) {
         this.nodes = nodes;
         this.graphWidth = width;
         this.graphHeight = height;
         this.route1 = route1;
         this.route2 = route2;
         this.route3 = route3;
+        this.route4 = route4;
         invalidate();
         repaint();
     }
@@ -84,7 +86,7 @@ public class Visualizer extends JPanel implements Runnable {
         g2.setStroke(stroke);
 
         // Draw route 1 (dark yellow)
-        g2.setColor(Color.ORANGE);
+        g2.setColor(Color.ORANGE); // gTSP1
             for (int j = 0; j < route1.size() - 1; j++) {
             int nodeIndex1 = route1.get(j);
             int nodeIndex2 = route1.get(j + 1);
@@ -94,7 +96,7 @@ public class Visualizer extends JPanel implements Runnable {
             }
 
         // Draw route 2 (dark green)
-        g2.setColor(Color.green);
+        g2.setColor(Color.green); // gTSP2
             for (int j = 0; j < route2.size() - 1; j++) {
             int nodeIndex1 = route2.get(j);
             int nodeIndex2 = route2.get(j + 1);
@@ -103,10 +105,19 @@ public class Visualizer extends JPanel implements Runnable {
             g2.drawLine(point1.x, point1.y, point2.x, point2.y);
             }
 
-        g2.setColor(Color.MAGENTA);
+        g2.setColor(Color.MAGENTA); // yangs
             for (int j = 0; j < route3.size() - 1; j++) {
             int nodeIndex1 = route3.get(j);
             int nodeIndex2 = route3.get(j + 1);
+            Point point1 = graphPoints.get(nodeIndex1);
+            Point point2 = graphPoints.get(nodeIndex2);
+            g2.drawLine(point1.x, point1.y, point2.x, point2.y);
+        }
+
+        g2.setColor(Color.BLUE); // marl
+            for (int j = 0; j < route4.size() - 1; j++) {
+            int nodeIndex1 = route4.get(j);
+            int nodeIndex2 = route4.get(j + 1);
             Point point1 = graphPoints.get(nodeIndex1);
             Point point2 = graphPoints.get(nodeIndex2);
             g2.drawLine(point1.x, point1.y, point2.x, point2.y);
