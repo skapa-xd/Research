@@ -86,7 +86,7 @@ public class Visualizer extends JPanel implements Runnable {
         g2.setStroke(stroke);
 
         // Draw route 1 (dark yellow)
-        g2.setColor(Color.ORANGE); // gTSP1
+        /* g2.setColor(Color.green); // gTSP1
             for (int j = 0; j < route1.size() - 1; j++) {
             int nodeIndex1 = route1.get(j);
             int nodeIndex2 = route1.get(j + 1);
@@ -96,7 +96,7 @@ public class Visualizer extends JPanel implements Runnable {
             }
 
         // Draw route 2 (dark green)
-        g2.setColor(Color.green); // gTSP2
+        g2.setColor(Color.orange); // gTSP2
             for (int j = 0; j < route2.size() - 1; j++) {
             int nodeIndex1 = route2.get(j);
             int nodeIndex2 = route2.get(j + 1);
@@ -105,14 +105,14 @@ public class Visualizer extends JPanel implements Runnable {
             g2.drawLine(point1.x, point1.y, point2.x, point2.y);
             }
 
-        g2.setColor(Color.MAGENTA); // yangs
+        g2.setColor(Color.RED); // yangs
             for (int j = 0; j < route3.size() - 1; j++) {
             int nodeIndex1 = route3.get(j);
             int nodeIndex2 = route3.get(j + 1);
             Point point1 = graphPoints.get(nodeIndex1);
             Point point2 = graphPoints.get(nodeIndex2);
             g2.drawLine(point1.x, point1.y, point2.x, point2.y);
-        }
+        } */
 
         g2.setColor(Color.BLUE); // marl
             for (int j = 0; j < route4.size() - 1; j++) {
