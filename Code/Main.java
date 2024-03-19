@@ -6,71 +6,45 @@ public class Main
 {
     public static void main(String[] args) 
     {
-        Network network = new Network();
-        Algorithms algorithms = new Algorithms();
-        NetworkToText write = new NetworkToText();
-        
-        int totalPacketsAvailable = 0;
-        String fileName = "node_info_" + System.currentTimeMillis() + ".txt";
+      Network network = new Network();
+      Algorithms algorithms = new Algorithms();
+      NetworkToText write = new NetworkToText();
+      LoadNetworkfromFile load = new LoadNetworkfromFile("/E:/Research/Code/node_info_1710808412207.txt"); 
+      
+      
+      
+      int totalPacketsAvailable = 0;
+      String fileName = "node_info_" + System.currentTimeMillis() + ".txt";
+      Map<Node, Double> shortest = new HashMap<>();
 
-        // Modified for new Network
-        List<Node> nodes =  network.generateNodes(1000, 1000, 50, 50); 
-        
+      List<Node> nodes = load.loadNetwork(); 
+      //List<Node> nodes =  network.generateNodes(10000, 10000, 100, 50); 
+      network.addEdges(nodes, 150);
+      shortest = network.findShortestPaths(nodes, nodes.get(0));
 
-       /* List<Node> nodes = new ArrayList<>();
-        nodes.add(new Node(0, 0, false, 0));
-       nodes.add(new Node(1, 2, true, 60));
-       nodes.add(new Node(3, 2, true, 90));
-       nodes.add(new Node(2, 3, true, 880));
-       nodes.add(new Node(1, 4, true, 710));
-       nodes.add(new Node(3, 5, true, 40));
-       nodes.add(new Node(4, 6, true, 70));
-       nodes.add(new Node(5, 2, true, 10));
-       nodes.add(new Node(2, 6, true, 30));
-       nodes.add(new Node(4, 4, true, 100)); */
-
-       Map<Node, Double> shortest = new HashMap<>();
-
-       network.addEdges(nodes, 150);
-       shortest = network.findShortestPaths(nodes, nodes.get(0));
-
-       for(Node node : nodes)
+      //prints node info
+       /* for(Node node : nodes)
        {
             node.nodeInfo();
        }
-
-       for(Node node: shortest.keySet())
+ */
+         //prints shortest path to each node
+       /* for(Node node: shortest.keySet())
        {
             double cost = shortest.get(node);
             System.out.println("Shortest path to Node " + node.getID() + ": " + cost);
-       }
+       } */
 
+       // prints the total data available to be collected
        for(Node node : nodes)
        {
           totalPacketsAvailable =  totalPacketsAvailable + node.getDataPackets();
        }
-
-      
        System.out.println("Total Packets Available to Collect: " + totalPacketsAvailable);
 
-       /* System.out.println("Greedy 1 TSP");
-       algorithms.greedy1TSP(nodes, 0, 1000000);
-       System.out.println("-----------------------------");
 
-       System.out.println("Greedy 2 TSP");
-       algorithms.greedy2TSP(nodes, 0, 1000000);
-       System.out.println("-----------------------------");
-       
-       System.out.println("Greedy 1 CSP");
-       algorithms.greedy1CSP(nodes, 0, 1000000); 
-       System.out.println("-----------------------------");
-
-       System.out.println("Greedy 2 CSP");
-       algorithms.greedy2CSP(nodes, 0, 1000000); 
-       System.out.println("-----------------------------"); */
-
-
-       /* try 
+       // writes node information to a file
+      /*  try 
        {
           write.writeToFile(nodes, fileName);
           System.out.println("Node information written to " + fileName);
@@ -80,15 +54,24 @@ public class Main
           System.err.println("Error writing to file: " + e.getMessage());
        } */
 
-       List<Integer> route1 = algorithms.gTSP1(nodes, 0,100);
-       List<Integer> route2 =  algorithms.gTSP2(nodes, 0, 100);
-       List<Integer> route3 = algorithms.gYang(nodes, 0, 100);
-       List<Integer> route4 = algorithms.MARL(nodes, 0, 100, 1000, 10, 0.5, 0.3, 0.5);
-       Visualizer visualize = new Visualizer(nodes, 1000, 1000, route1, route2, route3, route4);
+         // runs the algorithms
+      /*  List<Integer> route1 = algorithms.gTSP1(nodes, 0,1000);
+       List<Integer> route2 =  algorithms.gTSP2(nodes, 0, 1000);
+       List<Integer> route3 = algorithms.gYang(nodes, 0, 1000); */
+
+       long startTime  = System.currentTimeMillis();
+       List<Integer> route4 = algorithms.MARL(nodes, 0, 2000, 10000, 20, 0.5, 0.3, 0.5);
+       long endTime = System.currentTimeMillis();
+         System.out.println("MARL took " + (endTime - startTime) + " milliseconds");
+
+
+      // visualizes the routes
+     /*  Visualizer visualize = new Visualizer(nodes, 10000, 10000, route1, route2, route3, route4);
+      visualize.run(); */
+ 
        
-       visualize.run();
-
-
+      
+       
 
 
        
