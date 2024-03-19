@@ -31,6 +31,19 @@ public class Node
         this.neighbors = new HashMap<>();
         this.rangeNeighbors = new HashMap<>();
     }
+    public Node(int id, int x, int y, boolean isDataNode, int dataPackets) // initializing the node
+    {
+        this.x = x;
+        this.y =y;
+        this.isDataNode = isDataNode;
+        this.dataPackets = dataPackets;
+        this.totalDataPackets = dataPackets;
+        this.dp = 0;
+        this.dp2 =0;
+        this.id = id;
+        this.neighbors = new HashMap<>();
+        this.rangeNeighbors = new HashMap<>();
+    }
 
     public int getID() // returns id of node
     {
