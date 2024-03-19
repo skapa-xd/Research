@@ -9,7 +9,7 @@ public class Table
     private List<Node> nodes;
     private double learningRate;
     private double discountFactor;
-    private int W = 100;
+    private int W = 10000;
     Network network = new Network();
 
 
@@ -78,11 +78,10 @@ public class Table
         this.QTable[currentNode][nextNode] = value;
     }
 
-    public double[] getQmaxActionValue(int state, double budget, HashSet<Node> univisited, HashMap<Node, Double> shortestPaths)
+    public double getQmaxValue(int state, double budget, HashSet<Node> univisited, HashMap<Node, Double> shortestPaths)
     {
-        double[] ans = new double[2];
-        double max = Double.NEGATIVE_INFINITY;
-        int action = 0;
+        double max = QTable[state][1];
+        
         Node current = nodes.get(state);
         for(int i = 0; i<QTable.length; i++)
         {
@@ -96,31 +95,30 @@ public class Table
                 double val = QTable[state][i];
                 if(val > max)
                 {
+                    //System.out.println("test " + val + " " + max + " " + state + " " + i);
                     max = val;
-                    action = i;
                 }
             }
                 
             
         }
-        ans[0] = action;
-        ans[1] = max;
-        return ans; 
+        return max;
+        
     }
 
     public void updateQvalue(int state, int action, double budget, HashSet<Node> unvisited, HashMap<Node, Double> shortestPaths)
     {
-        this.QTable[state][action] = (1-learningRate)*(getQvalue(state, action)) + learningRate * discountFactor* getQmaxActionValue(action, budget, unvisited,shortestPaths)[1];
+        this.QTable[state][action] = (1-this.learningRate)*(getQvalue(state, action)) + learningRate * discountFactor* getQmaxValue(action, budget, unvisited,shortestPaths);
     }
 
-    public void updateQvalue2(int state, int action)
+    public void updateQvalue2(int state, int action, double budget, HashSet<Node> unvisited, HashMap<Node, Double> shortestPaths)
     {
-        this.QTable[state][action] = (1-learningRate)*(getQvalue(state, action)) + learningRate * (getRvalue(state, action) + (discountFactor*(getQmaxValue(action))));
+        this.QTable[state][action] = (1-this.learningRate)*(getQvalue(state, action)) + learningRate * (getRvalue(state, action) + (discountFactor*(getQmaxValue(action,budget,unvisited, shortestPaths))));
     }
 
-    public int getQmaxAction(int state)
+   /*  public int getQmaxAction(int state)
     {
-        double max = Double.NEGATIVE_INFINITY;
+        double max = Double.NEGATIVE_INFINITY
         int action = 0;
 
         for(int i = 0; i<QTable.length; i++)
@@ -134,23 +132,37 @@ public class Table
             
         }
         return action; 
-    }
+    } */
 
-    public double getQmaxValue(int state)
+    public Node getQMaxValue(int state, double budget, HashSet<Node> univisited, HashMap<Node, Double> shortestPaths)
     {
         double max = Double.NEGATIVE_INFINITY;
+        Node bestNode = null;
        
 
         for(int i = 0; i<QTable.length; i++)
         {
-            double val = QTable[state][i];
-            if(val > max)
+            Node current = nodes.get(state);
+            Node next = nodes.get(i);
+            if(current==next)
             {
-                max = val;
+                continue;
             }
+
+            if(network.isFeasible(current, next, budget, shortestPaths, univisited))
+            {
+                double val = QTable[state][i];
+                if(val > max)
+                {
+                    bestNode = nodes.get(i);
+                    max = val;
+                }
+            }
+
+            
             
         }
-        return max; 
+        return bestNode; 
     }
 
     
@@ -165,5 +177,16 @@ public class Table
         RTable[state][action] = getRvalue(state, action) + W/maxPrize;
     }
 
+    public void printTable()
+    {
+        for(int i = 0; i<QTable.length; i++)
+        {
+            for(int j = 0; j<QTable.length; j++)
+            {
+                System.out.print(QTable[i][j] + " ");
+            }
+            System.out.println();
+        }
+    }
     
 }
