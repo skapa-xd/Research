@@ -246,6 +246,7 @@ public class Algorithms
         System.out.println("Cost: " + Cost);
         System.out.println("Data Collected: " + Prize);
         System.out.println("Budget Reamining: " + Budget);
+        System.out.println("Budget USed: " + (budget*3600 - Budget)/3600);
         System.out.println("---------------------------");
 
         return Route;
@@ -291,6 +292,7 @@ public class Algorithms
             System.out.println("Cost: " + Cost);
             System.out.println("Data Collected: " + Prize);
             System.out.println("Budget Reamining: " + Budget);
+            System.out.println("Budget USed: " + (budget*3600 - Budget)/3600);
             System.out.println("---------------------------");
 
             return Route;
@@ -339,6 +341,7 @@ public class Algorithms
         System.out.println("Cost: " + Cost);
         System.out.println("Data Collected: " + Prize);
         System.out.println("Budget Reamining: " + Budget);
+        System.out.println("Budget USed: " + (budget*3600 - Budget)/3600);
         System.out.println("-----------------------------");
 
         return Route;
@@ -349,6 +352,7 @@ public class Algorithms
     {
         Network network = new Network();
         Table table = new Table(nodes, nodes.size(), learningRate, discountFactor);
+        //table.printTable();
         List<Agent> allAgents = new ArrayList<>();
 
        
@@ -399,7 +403,9 @@ public class Algorithms
                                 agent.addCost(agent.getCurrent(), next);
                                 agent.updateBudget(agent.getCurrent(), next);
                                 agent.updateData(next);
+                                //System.out.println("For state," + agent.getCurrent().getID() +" action "+ next.getID() + "Before: " + table.getQvalue(agent.getCurrent().getID(), next.getID()) + " Episode: " + episode);
                                 table.updateQvalue(agent.getCurrent().getID(), next.getID(), agent.getBudget(), agent.getUnvisited(), shortestPaths);
+                               // System.out.println("For state," + agent.getCurrent().getID() +" action "+ next.getID() + "After: " + table.getQvalue(agent.getCurrent().getID(), next.getID()) + " Episode: " + episode);
                                 agent.updateUnvisited(next);
                                 agent.updateCurrent(next);
                             
@@ -417,27 +423,31 @@ public class Algorithms
                 int state = bestest.getRoute().get(i);
                 int action = bestest.getRoute().get(i+1);
 
-                table.updateRValue(state, action, bestest.getDataPackets());
-                table.updateQvalue2(state, action);
+                table.updateRValue(state, action, best.getDataPackets());
+                //System.out.println("R value" + table.getRvalue(state, action)+ " Episode: " + episode);
+                table.updateQvalue2(state, action, best.getBudget(), best.getUnvisited(), shortestPaths);
+                //System.out.println("Q value" + table.getQvalue(state, action) + " Episode : " + episode);
             }
     
             
             allAgents.clear(); // clears list of agents 
         }
-        System.out.println("----------Learning MARL------------");
+        /* System.out.println("----------Learning MARL------------");
         System.out.println("Route: " + bestest.getRoute());
         System.out.println("Cost: " + bestest.getCost());
         System.out.println("Data Collected: " + bestest.getDataPackets());
         System.out.println("Budget Reamining: " + bestest.getBudget());
+        System.out.println("Budget USed: " + (budget*3600 - bestest.getBudget())/3600);
         System.out.println("---------------------------");
+ */
 
-
-        // execution stage
+        //execution stage
         Agent bestAgent = new Agent(base, budget, false, nodes, shortestPaths);
 
         while(bestAgent.agentFeasibleSet().size()!=0)
         {
-            Node next = nodes.get((int)table.getQmaxActionValue(bestAgent.getCurrent().getID(), bestAgent.getBudget(), bestAgent.getUnvisited(), shortestPaths)[0]);
+            Node next = table.getQMaxValue(bestAgent.getCurrent().getID(), bestAgent.getBudget(), bestAgent.getUnvisited(), shortestPaths);
+            //System.out.println("Current" + bestAgent.getCurrent().getID() + "Next" + next.getID() + "Budget" + bestAgent.getBudget());
             bestAgent.addNode(next);
             bestAgent.addCost(bestAgent.getCurrent(), next);
             bestAgent.updateBudget(bestAgent.getCurrent(), next);
@@ -447,14 +457,15 @@ public class Algorithms
         }
         bestAgent.terminate();
 
-        System.out.println("----------Execu MARL------------");
+        System.out.println("----------MARL------------");
         System.out.println("Route: " + bestAgent.getRoute());
         System.out.println("Cost: " + bestAgent.getCost());
         System.out.println("Data Collected: " + bestAgent.getDataPackets());
-        System.out.println("Budget Reamining: " + bestAgent.getBudget());
+        System.out.println("Budget Reamining: " + bestAgent.getBudget()/3600);
+        System.out.println("Budget USed: " + (budget*3600 - bestAgent.getBudget())/3600);
         System.out.println("---------------------------");
 
-        return bestest.getRoute();
+        return bestest.getRoute(); 
 
     }
 
