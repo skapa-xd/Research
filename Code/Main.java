@@ -19,15 +19,15 @@ public class Main
 
       List<Node> nodes = load.loadNetwork(); 
       //List<Node> nodes =  network.generateNodes(10000, 10000, 100, 50); 
-      network.addEdges(nodes, 150);
+      network.addEdges(nodes, 700);
       shortest = network.findShortestPaths(nodes, nodes.get(0));
 
       //prints node info
-       /* for(Node node : nodes)
+      /*  for(Node node : nodes)
        {
             node.nodeInfo();
-       }
- */
+       } */
+
          //prints shortest path to each node
        /* for(Node node: shortest.keySet())
        {
@@ -36,12 +36,12 @@ public class Main
        } */
 
        // prints the total data available to be collected
-       for(Node node : nodes)
+      /*  for(Node node : nodes)
        {
           totalPacketsAvailable =  totalPacketsAvailable + node.getDataPackets();
        }
        System.out.println("Total Packets Available to Collect: " + totalPacketsAvailable);
-
+ */
 
        // writes node information to a file
       /*  try 
@@ -55,20 +55,22 @@ public class Main
        } */
 
          // runs the algorithms
-      /*  List<Integer> route1 = algorithms.gTSP1(nodes, 0,1000);
-       List<Integer> route2 =  algorithms.gTSP2(nodes, 0, 1000);
-       List<Integer> route3 = algorithms.gYang(nodes, 0, 1000); */
+       List<Integer> tsp1 = algorithms.gTSP1(nodes, 0,500);
+       List<Integer> tsp2 =  algorithms.gTSP2(nodes, 0, 500);
+       //List<Integer> yang = algorithms.gYang(nodes, 0, 1000); 
+       List<Integer> csp1 = algorithms.greedy1CSP(nodes, 0, 500);
+       List<Integer> csp2 = algorithms.greedy2CSP(nodes, 0, 500);
 
-       long startTime  = System.currentTimeMillis();
-       List<Integer> route4 = algorithms.MARL(nodes, 0, 2000, 10000, 20, 0.5, 0.3, 0.5);
+      /*  long startTime  = System.currentTimeMillis();
+       List<Integer> marl = algorithms.MARL(nodes, 0, 130, 100, 20, 0.1, 0.3, 0.5);
        long endTime = System.currentTimeMillis();
-         System.out.println("MARL took " + (endTime - startTime) + " milliseconds");
-
+         System.out.println("MARL took " + (endTime - startTime) + " milliseconds"); 
+ */
 
       // visualizes the routes
-     /*  Visualizer visualize = new Visualizer(nodes, 10000, 10000, route1, route2, route3, route4);
-      visualize.run(); */
- 
+      /* Visualizer visualize = new Visualizer(nodes, 10000, 10000, tsp1, tsp2, yang, marl, csp1, csp2);
+      visualize.run();
+  */
        
       
        
