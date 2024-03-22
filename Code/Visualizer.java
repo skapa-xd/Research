@@ -22,19 +22,23 @@ public class Visualizer extends JPanel implements Runnable {
     private double graphHeight;
     private int scaling = 25;
     private int ovalSize = 6;
-    private List<Integer> route1;
-    private List<Integer> route2;
-    private List<Integer> route3;
-    private List<Integer> route4;
+    private List<Integer> tsp1;
+    private List<Integer> tsp2;
+    private List<Integer> yang;
+    private List<Integer> marl;
+    private List<Integer> csp1;
+    private List<Integer> csp2;
 
-    public Visualizer(List<Node> nodes, double width, double height, List<Integer> route1, List<Integer> route2, List<Integer> route3, List<Integer> route4) {
+    public Visualizer(List<Node> nodes, double width, double height, List<Integer> tsp1, List<Integer> tsp2, List<Integer> yang, List<Integer> marl, List<Integer> csp1, List<Integer> csp2) {
         this.nodes = nodes;
         this.graphWidth = width;
         this.graphHeight = height;
-        this.route1 = route1;
-        this.route2 = route2;
-        this.route3 = route3;
-        this.route4 = route4;
+        this.tsp1 = tsp1;
+        this.tsp2 = tsp2;
+        this.yang = yang;
+        this.marl = marl;
+        this.csp1 = csp1;
+        this.csp2 = csp2;
         invalidate();
         repaint();
     }
@@ -87,9 +91,9 @@ public class Visualizer extends JPanel implements Runnable {
 
         // Draw route 1 (dark yellow)
         /* g2.setColor(Color.green); // gTSP1
-            for (int j = 0; j < route1.size() - 1; j++) {
-            int nodeIndex1 = route1.get(j);
-            int nodeIndex2 = route1.get(j + 1);
+            for (int j = 0; j < tsp1.size() - 1; j++) {
+            int nodeIndex1 = tsp1.get(j);
+            int nodeIndex2 = tsp1.get(j + 1);
             Point point1 = graphPoints.get(nodeIndex1);
             Point point2 = graphPoints.get(nodeIndex2);
             g2.drawLine(point1.x, point1.y, point2.x, point2.y);
@@ -97,31 +101,83 @@ public class Visualizer extends JPanel implements Runnable {
 
         // Draw route 2 (dark green)
         g2.setColor(Color.orange); // gTSP2
-            for (int j = 0; j < route2.size() - 1; j++) {
-            int nodeIndex1 = route2.get(j);
-            int nodeIndex2 = route2.get(j + 1);
+            for (int j = 0; j < tsp2.size() - 1; j++) {
+            int nodeIndex1 = tsp2.get(j);
+            int nodeIndex2 = tsp2.get(j + 1);
             Point point1 = graphPoints.get(nodeIndex1);
             Point point2 = graphPoints.get(nodeIndex2);
             g2.drawLine(point1.x, point1.y, point2.x, point2.y);
             }
 
         g2.setColor(Color.RED); // yangs
-            for (int j = 0; j < route3.size() - 1; j++) {
-            int nodeIndex1 = route3.get(j);
-            int nodeIndex2 = route3.get(j + 1);
+            for (int j = 0; j < yang.size() - 1; j++) {
+            int nodeIndex1 = yang.get(j);
+            int nodeIndex2 = yang.get(j + 1);
+            Point point1 = graphPoints.get(nodeIndex1);
+            Point point2 = graphPoints.get(nodeIndex2);
+            g2.drawLine(point1.x, point1.y, point2.x, point2.y);
+        }
+
+        g2.setColor(Color.BLUE); // marl
+            for (int j = 0; j < marl.size() - 1; j++) {
+            int nodeIndex1 = marl.get(j);
+            int nodeIndex2 = marl.get(j + 1);
             Point point1 = graphPoints.get(nodeIndex1);
             Point point2 = graphPoints.get(nodeIndex2);
             g2.drawLine(point1.x, point1.y, point2.x, point2.y);
         } */
 
-        g2.setColor(Color.BLUE); // marl
-            for (int j = 0; j < route4.size() - 1; j++) {
-            int nodeIndex1 = route4.get(j);
-            int nodeIndex2 = route4.get(j + 1);
-            Point point1 = graphPoints.get(nodeIndex1);
-            Point point2 = graphPoints.get(nodeIndex2);
-            g2.drawLine(point1.x, point1.y, point2.x, point2.y);
-        }
+        g2.setColor(Color.MAGENTA); // csp1
+            for (int j = 0; j < csp1.size() - 1; j++) 
+            {
+                int nodeIndex1 = csp1.get(j);
+                int nodeIndex2 = csp1.get(j + 1);
+                Point point1 = graphPoints.get(nodeIndex1);
+                Point point2 = graphPoints.get(nodeIndex2);
+                g2.drawLine(point1.x, point1.y, point2.x, point2.y);
+            }
+
+            // Draw circles around points in csp1 route
+            g2.setColor(Color.gray);
+            double averageScale = (xScale + yScale) / 2;
+            double circleRadius = 700 * averageScale;
+            
+            for (int j = 0; j < csp1.size(); j++) {
+                int nodeIndex = csp1.get(j);
+                Point point = graphPoints.get(nodeIndex);
+                double x = point.x - circleRadius / 2;
+                double y = point.y - circleRadius / 2;
+                double circleW = circleRadius;
+                double circleH = circleRadius;
+                Ellipse2D.Double shape = new Ellipse2D.Double(x, y, circleW, circleH);
+                g2.draw(shape);
+            }
+
+       /*  g2.setColor(Color.CYAN); // csp2
+            for (int j = 0; j < csp2.size() - 1; j++) 
+            {
+                int nodeIndex1 = csp2.get(j);
+                int nodeIndex2 = csp2.get(j + 1);
+                Point point1 = graphPoints.get(nodeIndex1);
+                Point point2 = graphPoints.get(nodeIndex2);
+                g2.drawLine(point1.x, point1.y, point2.x, point2.y);
+            }
+        
+            g2.setColor(Color.gray);
+            for (int j = 0; j < csp2.size(); j++) {
+                int nodeIndex = csp2.get(j);
+                Point point = graphPoints.get(nodeIndex);
+                double x = point.x - circleRadius;
+                double y = point.y - circleRadius;
+                double circleW = circleRadius;
+                double circleH = circleRadius;
+                Ellipse2D.Double shape = new Ellipse2D.Double(x, y, circleW, circleH);
+                g2.draw(shape);
+            }
+ */
+
+            // Helper method to calculate the radius in pixels based on the given radius in meters
+          
         
     }
 
