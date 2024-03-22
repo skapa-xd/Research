@@ -17,6 +17,7 @@ public class Node
     private static int counter = 0; // id counter
     private HashMap<Node, Double> neighbors; // node neighbors, calculated by transmission range definition
     private HashMap<Node, Double> rangeNeighbors; // node ranfe neighbors, calculated by robot range definition
+    private double budgetCSP1 = 0; // budget for CSP1
 
     public Node(int x, int y, boolean isDataNode, int dataPackets) // initializing the node
     {
@@ -30,6 +31,7 @@ public class Node
         this.id = counter++;
         this.neighbors = new HashMap<>();
         this.rangeNeighbors = new HashMap<>();
+        this.budgetCSP1 = 0;
     }
     public Node(int id, int x, int y, boolean isDataNode, int dataPackets) // initializing the node
     {
@@ -175,6 +177,16 @@ public class Node
         getID(), getX(), getY(), isDataNode(), getDataPackets(), getTotalDataPackets(), Arrays.toString(getRangeNeighbors().toArray()));
         System.out.println(s);
     }
+
+   /*  public void setBudgetCSP1(double budget) // sets the budget for CSP1
+    {
+        this.budgetCSP1 = budget;
+    }
+
+    public double getBudgetCSP1() // sets the budget for CSP1
+    {
+        return this.budgetCSP1;
+    } */
 
 
 }
