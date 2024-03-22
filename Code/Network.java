@@ -79,14 +79,14 @@ public class Network
                 nodes.get(j).setNeighbor(nodes.get(i), d); 
                      
                 
-                /* if(d<= CSPradius) // FOR CSP
+                if(d<= CSPradius) // FOR CSP
                 {
                     nodes.get(i).setRangeNeighbor(nodes.get(j), nodes.get(j).getDataPackets());
                     nodes.get(j).setRangeNeighbor(nodes.get(i), nodes.get(i).getDataPackets());
-                } */
+                }
             }
         }
-        /* for(Node node : nodes) // for CSP
+        for(Node node : nodes) // for CSP
         {
             int prize = node.getDataPackets();
             for(Node curr : node.getRangeNeighborList())
@@ -94,7 +94,7 @@ public class Network
                 prize = prize + curr.getDataPackets();
             }
             node.setTotalDataPackets(prize);
-        } */
+        }
     
     }
 
@@ -211,34 +211,39 @@ public class Network
 
     public Node bestPrizeNodeCSP(Node current, double budget, HashMap<Node, Double> shortestPaths, HashSet<Node> unvisited, HashSet<Node> collected) 
     {
+        
         int max = Integer.MIN_VALUE;
         Node best = null;
         for(Node node: current.getNeighborsList())
         {
+          
             if(feasibleSet(current, budget, shortestPaths, unvisited).contains(node))
             { 
-                    int prize = node.getTotalDataPackets();
-                    if(collected.contains(node))
+                    int prize = 0;
+                    if(!collected.contains(node))
                     {
-                        prize = prize - node.getDataPackets();
+                        prize = prize + node.getDataPackets();
                     }
                     for(Node n : node.getRangeNeighborList())
                     {
-                        if(collected.contains(n))
+                        if(!collected.contains(n))
                         {
-                            prize = prize - n.getDataPackets();
+                            prize = prize + n.getDataPackets();
+    
                         }
                     }
                     if(prize > max)
                     {
                         max = prize;
                         best = node;
+                       
                     }
             }    
         }
         if(best != null)
         {
             best.setDP(max);
+            
         }
         
         return best;
