@@ -97,11 +97,11 @@ public class Algorithms
         System.out.println(Budget);
     }
 
-    public void greedy1CSP(List<Node> nodes, int start, double budget)
+    public List<Integer> greedy1CSP(List<Node> nodes, int start, double budget)
     {
         Network network = new Network();
 
-        double Budget = budget*0.002;
+        double Budget = budget*3600;
         List<Integer> Route  = new ArrayList<>();
         HashSet<Node> Unvisited = new HashSet<>(nodes);
         HashSet<Node> Collected = new HashSet<>();
@@ -127,7 +127,8 @@ public class Algorithms
             Route.add(node.getID());
             Cost = Cost + node.getNeighbor(curr);
             Prize = Prize  + node.getDP();
-            Budget = Budget - node.getNeighbor(curr);
+            Budget = Budget - node.getNeighbor(curr)*100 - 2*100*node.getDP()*3200/1000000000;
+            
             Collected.add(node);
             Unvisited.remove(node);
             Collected.addAll(node.getRangeNeighborList());
@@ -136,18 +137,25 @@ public class Algorithms
         
         Route.add(s.getID());
         Cost = Cost + shortestPaths.get(curr);
-        Budget = Budget - shortestPaths.get(curr);
+        Budget = Budget - shortestPaths.get(curr)*100;
 
-        System.out.println("Collected :" + Prize);
+        System.out.println("----------gCSP1------------");
+        System.out.println("Route: " + Route);
+        System.out.println("Cost: " + Cost);
+        System.out.println("Data Collected: " + Prize);
         System.out.println("Collected from :" + Collected.size());
-        System.out.println(Route);
-        System.out.println("Visited: " + (nodes.size() - Unvisited.size()));
+        System.out.println("Budget Reamining: " + Budget);
+        System.out.println("Budget USed: " + (budget*3600 - Budget)/3600);
+        System.out.println("---------------------------");
+       
+        
+        return Route;
     }
 
-    public void greedy2CSP(List<Node> nodes, int start, double budget)
+    public List<Integer> greedy2CSP(List<Node> nodes, int start, double budget)
     {
         Network network = new Network();
-        double Budget = budget*0.002;
+        double Budget = budget*3600;
         List<Integer> Route  = new ArrayList<>();
         HashSet<Node> Unvisited = new HashSet<>(nodes);
         HashSet<Node> Collected = new HashSet<>();
@@ -175,7 +183,7 @@ public class Algorithms
             Route.add(node.getID());
             Cost = Cost + node.getNeighbor(curr);
             Prize = Prize + node.getDP2();
-            Budget = Budget- node.getNeighbor(curr);
+            Budget = Budget- node.getNeighbor(curr)*100 -2*100*node.getDP()*3200/1000000000;
             Collected.add(node);
             Collected.addAll(node.getRangeNeighborList());
             Unvisited.remove(node);
@@ -185,14 +193,18 @@ public class Algorithms
         }
         Route.add(s.getID());
         Cost = Cost + shortestPaths.get(curr);
-        Budget = Budget - shortestPaths.get(curr);
+        Budget = Budget - shortestPaths.get(curr)*100;
 
-        System.out.println("Collected :" + Prize);
+        System.out.println("----------gCSP2------------");
+        System.out.println("Route: " + Route);
+        System.out.println("Cost: " + Cost);
+        System.out.println("Data Collected: " + Prize);
         System.out.println("Collected from :" + Collected.size());
-        System.out.println(Route);
-        System.out.println("Visited: " + (nodes.size() - Unvisited.size()));
-        
-        System.out.println(Budget);
+        System.out.println("Budget Reamining: " + Budget);
+        System.out.println("Budget USed: " + (budget*3600 - Budget)/3600);
+        System.out.println("---------------------------");
+
+        return Route;
         
     }
 
@@ -455,7 +467,9 @@ public class Algorithms
             bestAgent.updateUnvisited(next);
             bestAgent.updateCurrent(next);  
         }
-        bestAgent.terminate();
+        bestAgent.addNode(base);
+        bestAgent.addCost(bestAgent.getCurrent(), base);
+        bestAgent.updateBudget(bestAgent.getCurrent(), base);
 
         System.out.println("----------MARL------------");
         System.out.println("Route: " + bestAgent.getRoute());
