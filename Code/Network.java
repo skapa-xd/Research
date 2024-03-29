@@ -86,7 +86,12 @@ public class Network
                 }
             }
         }
-        for(Node node : nodes) // for CSP
+        setTotalPrizeNode(nodes);
+    
+    }
+    public void setTotalPrizeNode(List<Node> nodes)
+    {
+        for(Node node : nodes)
         {
             int prize = node.getDataPackets();
             for(Node curr : node.getRangeNeighborList())
@@ -95,7 +100,6 @@ public class Network
             }
             node.setTotalDataPackets(prize);
         }
-    
     }
 
     
@@ -202,10 +206,7 @@ public class Network
                 }
             }
         }
-        if(bestNode != null)
-        {
-            bestNode.setDP2(P);
-        }
+        
         return bestNode;
     } 
 
@@ -240,11 +241,7 @@ public class Network
                     }
             }    
         }
-        if(best != null)
-        {
-            best.setDP(max);
-            
-        }
+        
         
         return best;
     } 
@@ -364,6 +361,35 @@ public class Network
         return best;
     }
 
+    public boolean isNodeDead(List<Node> nodes)
+    {
+        for(Node node : nodes)
+        {
+            if(node.getNodeBattery() <= 0)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void totalDataAvailable(List<Node> nodes)
+    {
+        int total = 0;
+        for(Node node : nodes)
+        {
+            total = total + node.getDataPackets();
+        }
+        System.out.println("Total data in Network is: " + total);
+    }
+
+    public void resetNodeBattery(List<Node> nodes)
+    {
+        for(Node node : nodes)
+        {
+            node.setNodeBattery(6480);
+        }
+    }
    
 
     
