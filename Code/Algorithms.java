@@ -126,8 +126,21 @@ public class Algorithms
             }
             Route.add(node.getID());
             Cost = Cost + node.getNeighbor(curr);
-            Prize = Prize  + node.getDP();
-            Budget = Budget - node.getNeighbor(curr)*100 - 2*100*node.getDP()*3200/1000000000;
+            int currPrize = 0;
+            for(Node n : node.getRangeNeighborList())
+            {
+                if(Collected.contains(n))
+                {
+                    continue;
+                }
+                currPrize = currPrize + n.getDataPackets();
+            }
+            if(!Collected.contains(node))
+            {
+                currPrize = currPrize + node.getDataPackets();
+            }
+            Prize = Prize  + currPrize;
+            Budget = Budget - node.getNeighbor(curr)*100 - 2*100*currPrize*3200/1000000000;
             
             Collected.add(node);
             Unvisited.remove(node);
@@ -182,8 +195,26 @@ public class Algorithms
             }
             Route.add(node.getID());
             Cost = Cost + node.getNeighbor(curr);
-            Prize = Prize + node.getDP2();
-            Budget = Budget- node.getNeighbor(curr)*100 -2*100*node.getDP()*3200/1000000000;
+            int currPrize = 0;
+            double battery = node.getNodeBattery();
+            for(Node n : node.getRangeNeighborList())
+            {
+                if(Collected.contains(n))
+                {
+                    continue;
+                }
+                currPrize = currPrize + n.getDataPackets();
+                battery = battery - (100*n.getDataPackets()*Math.pow(n.getNeighbor(node),2)*3200)/1000000000000L;
+
+            }
+            node.setNodeBattery(battery);
+            if(!Collected.contains(node))
+            {
+                currPrize = currPrize + node.getDataPackets();
+            }
+            Budget = Budget- node.getNeighbor(curr)*100 -2*100*currPrize*3200/1000000000;
+
+            Prize = Prize + currPrize;
             Collected.add(node);
             Collected.addAll(node.getRangeNeighborList());
             Unvisited.remove(node);
@@ -200,7 +231,7 @@ public class Algorithms
         System.out.println("Cost: " + Cost);
         System.out.println("Data Collected: " + Prize);
         System.out.println("Collected from :" + Collected.size());
-        System.out.println("Budget Reamining: " + Budget);
+        System.out.println("Budget Reamining: " + Budget/3600);
         System.out.println("Budget USed: " + (budget*3600 - Budget)/3600);
         System.out.println("---------------------------");
 
@@ -257,7 +288,7 @@ public class Algorithms
         System.out.println("Route: " + Route);
         System.out.println("Cost: " + Cost);
         System.out.println("Data Collected: " + Prize);
-        System.out.println("Budget Reamining: " + Budget);
+        System.out.println("Budget Reamining: " + Budget/3600);
         System.out.println("Budget USed: " + (budget*3600 - Budget)/3600);
         System.out.println("---------------------------");
 
@@ -303,7 +334,7 @@ public class Algorithms
             System.out.println("Route: " + Route);
             System.out.println("Cost: " + Cost);
             System.out.println("Data Collected: " + Prize);
-            System.out.println("Budget Reamining: " + Budget);
+            System.out.println("Budget Reamining: " + Budget/3600);
             System.out.println("Budget USed: " + (budget*3600 - Budget)/3600);
             System.out.println("---------------------------");
 
@@ -352,7 +383,7 @@ public class Algorithms
         System.out.println("Route: " + Route);
         System.out.println("Cost: " + Cost);
         System.out.println("Data Collected: " + Prize);
-        System.out.println("Budget Reamining: " + Budget);
+        System.out.println("Budget Reamining: " + Budget/3600);
         System.out.println("Budget USed: " + (budget*3600 - Budget)/3600);
         System.out.println("-----------------------------");
 
@@ -426,14 +457,14 @@ public class Algorithms
                 }
             }
             Agent best = network.bestAgent(allAgents);
-            if(best.getDataPackets() > bestest.getDataPackets())
+           /*  if(best.getDataPackets() > bestest.getDataPackets())
             {
                 bestest = best;
-            }
-            for(int i = 0; i< bestest.getRoute().size()-1; i++)
+            } */
+            for(int i = 0; i< best.getRoute().size()-1; i++)
             {
-                int state = bestest.getRoute().get(i);
-                int action = bestest.getRoute().get(i+1);
+                int state = best.getRoute().get(i);
+                int action = best.getRoute().get(i+1);
 
                 table.updateRValue(state, action, best.getDataPackets());
                 //System.out.println("R value" + table.getRvalue(state, action)+ " Episode: " + episode);
@@ -479,9 +510,55 @@ public class Algorithms
         System.out.println("Budget USed: " + (budget*3600 - bestAgent.getBudget())/3600);
         System.out.println("---------------------------");
 
-        return bestest.getRoute(); 
+        return bestAgent.getRoute(); 
 
     }
 
 
+    public int getHoursTSP2(List<Node> nodes, int min, int max)
+    {
+        int hours = 0;
+        
+        Network network = new Network();
+        while(network.isNodeDead(nodes) == false)
+        {
+            for(Node n : nodes)
+            {
+                int data = network.getRandomNumberUsingNextInt(min, max);
+                n.setDataPackets(data);
+                double battery = n.getNodeBattery();
+                battery = battery - data*0.108;
+                n.setNodeBattery(battery);              
+            }
+            hours++;
+            gTSP2(nodes, 0, 800);
+        }
+        return hours;
+    }
+
+    public int getHoursCSP2(List<Node> nodes, int min, int max)
+    {
+        int hours = 0;
+    
+        
+        Network network = new Network();
+        network.resetNodeBattery(nodes);
+        while(network.isNodeDead(nodes) == false)
+        {
+            for(Node n : nodes)
+            {
+                int data = network.getRandomNumberUsingNextInt(min, max);
+                n.setDataPackets(data);
+                double battery = n.getNodeBattery();
+                
+                battery = battery - data*0.108;
+
+                n.setNodeBattery(battery);              
+            }
+            network.setTotalPrizeNode(nodes);
+            hours++;
+            greedy2CSP(nodes, 0, 800);
+        }
+        return hours;
+    }
 }
