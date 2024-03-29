@@ -1,5 +1,6 @@
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -78,14 +79,21 @@ public class Visualizer extends JPanel implements Runnable {
         // Draw node IDs in red with increased spacing
         g2.setColor(Color.red);
         FontMetrics metrics = g2.getFontMetrics();
+        
         int textHeight = metrics.getHeight();
         int textPadding = 3;  // Adjust padding between oval and text
+
+        // Set a larger font size
+        Font originalFont = g2.getFont();
+        Font largerFont = originalFont.deriveFont(originalFont.getSize() + 6f);
+        g2.setFont(largerFont);
+
         for (int i = 0; i < graphPoints.size(); i++) {
             double x = graphPoints.get(i).x - (metrics.stringWidth("" + nodes.get(i).getID()) / 2.0);
             double y = graphPoints.get(i).y + ovalSize + textHeight + textPadding;
             g2.drawString("" + nodes.get(i).getID(), (int) x, (int) y);
         }
-        
+
         Stroke stroke = new BasicStroke(2f);
         g2.setStroke(stroke);
 
@@ -97,26 +105,26 @@ public class Visualizer extends JPanel implements Runnable {
             Point point1 = graphPoints.get(nodeIndex1);
             Point point2 = graphPoints.get(nodeIndex2);
             g2.drawLine(point1.x, point1.y, point2.x, point2.y);
-            }
-
+        }
+ */
         // Draw route 2 (dark green)
-        g2.setColor(Color.orange); // gTSP2
+        /* g2.setColor(Color.orange); // gTSP2
             for (int j = 0; j < tsp2.size() - 1; j++) {
             int nodeIndex1 = tsp2.get(j);
             int nodeIndex2 = tsp2.get(j + 1);
             Point point1 = graphPoints.get(nodeIndex1);
             Point point2 = graphPoints.get(nodeIndex2);
             g2.drawLine(point1.x, point1.y, point2.x, point2.y);
-            }
+        } */
 
-        g2.setColor(Color.RED); // yangs
+        /* g2.setColor(Color.RED); // yangs
             for (int j = 0; j < yang.size() - 1; j++) {
             int nodeIndex1 = yang.get(j);
             int nodeIndex2 = yang.get(j + 1);
             Point point1 = graphPoints.get(nodeIndex1);
             Point point2 = graphPoints.get(nodeIndex2);
             g2.drawLine(point1.x, point1.y, point2.x, point2.y);
-        }
+        } */
 
         g2.setColor(Color.BLUE); // marl
             for (int j = 0; j < marl.size() - 1; j++) {
@@ -125,9 +133,9 @@ public class Visualizer extends JPanel implements Runnable {
             Point point1 = graphPoints.get(nodeIndex1);
             Point point2 = graphPoints.get(nodeIndex2);
             g2.drawLine(point1.x, point1.y, point2.x, point2.y);
-        } */
+        }
 
-        g2.setColor(Color.MAGENTA); // csp1
+        /* g2.setColor(Color.MAGENTA); // csp1
             for (int j = 0; j < csp1.size() - 1; j++) 
             {
                 int nodeIndex1 = csp1.get(j);
@@ -151,7 +159,7 @@ public class Visualizer extends JPanel implements Runnable {
                 double circleH = circleRadius;
                 Ellipse2D.Double shape = new Ellipse2D.Double(x, y, circleW, circleH);
                 g2.draw(shape);
-            }
+            } */
 
        /*  g2.setColor(Color.CYAN); // csp2
             for (int j = 0; j < csp2.size() - 1; j++) 
