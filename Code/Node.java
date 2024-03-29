@@ -17,7 +17,8 @@ public class Node
     private static int counter = 0; // id counter
     private HashMap<Node, Double> neighbors; // node neighbors, calculated by transmission range definition
     private HashMap<Node, Double> rangeNeighbors; // node ranfe neighbors, calculated by robot range definition
-    private double budgetCSP1 = 0; // budget for CSP1
+    private double nodeBattery;
+    
 
     public Node(int x, int y, boolean isDataNode, int dataPackets) // initializing the node
     {
@@ -31,7 +32,8 @@ public class Node
         this.id = counter++;
         this.neighbors = new HashMap<>();
         this.rangeNeighbors = new HashMap<>();
-        this.budgetCSP1 = 0;
+        this.nodeBattery = 6480;
+        
     }
     public Node(int id, int x, int y, boolean isDataNode, int dataPackets) // initializing the node
     {
@@ -45,6 +47,7 @@ public class Node
         this.id = id;
         this.neighbors = new HashMap<>();
         this.rangeNeighbors = new HashMap<>();
+        this.nodeBattery = 6480;
     }
 
     public int getID() // returns id of node
@@ -88,6 +91,11 @@ public class Node
         return this.dataPackets;
     }
 
+    public void setDataPackets(int data) // sets data packets of the node
+    {
+        this.dataPackets = data;
+    }
+
     public int getTotalDataPackets() // returns data packets from all nodes which fall within the range given by CSP
     {
         return this.totalDataPackets;
@@ -98,7 +106,17 @@ public class Node
         this.totalDataPackets = dataPackets;
     }
 
-    public void setDP(int dataPackets)
+    public void setNodeBattery(double battery)
+    {
+        this.nodeBattery = battery;
+    }
+
+    public double getNodeBattery()
+    {
+        return this.nodeBattery;
+    }
+
+    /* public void setDP(int dataPackets)
     {
         this.dp = dataPackets;
     }
@@ -116,7 +134,7 @@ public class Node
     public int getDP2()
     {
         return this.dp2;
-    }
+    } */
 
     public void setNeighbor(Node node, double cost) // set the given node as the current node's neighbor with the cost
     {
@@ -178,15 +196,7 @@ public class Node
         System.out.println(s);
     }
 
-   /*  public void setBudgetCSP1(double budget) // sets the budget for CSP1
-    {
-        this.budgetCSP1 = budget;
-    }
-
-    public double getBudgetCSP1() // sets the budget for CSP1
-    {
-        return this.budgetCSP1;
-    } */
+    
 
 
 }
