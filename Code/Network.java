@@ -121,7 +121,7 @@ public class Network
             for (Node neighbor : node.getNeighborsList()) {
                 double newDistance = distances.get(node) + node.getNeighbor(neighbor);
                 if (newDistance < distances.get(neighbor)) {
-                    distances.put(neighbor, Math.round(newDistance *100.0)/100.0);
+                   distances.put(neighbor, Math.round(newDistance *100.0)/100.0);         
                     pq.add(neighbor);
                 }
             }
@@ -176,7 +176,6 @@ public class Network
 
      public Node bestPrizeCostRatioNodeCSP(Node current, double budget, HashMap<Node, Double> shortestPaths, HashSet<Node> unvisited, HashSet<Node> collected)
     {
-        int P = 0;
         Node bestNode = null;
         double bestRatio = Double.NEGATIVE_INFINITY;
 
@@ -200,7 +199,6 @@ public class Network
                 double ratio = prize/cost;
                 if(ratio>bestRatio)
                 {
-                    P = prize;
                     bestRatio = ratio;
                     bestNode = node;
                 }
@@ -214,7 +212,7 @@ public class Network
     {
         
         int max = Integer.MIN_VALUE;
-        Node best = null;
+        Node best =null ;
         for(Node node: current.getNeighborsList())
         {
           
@@ -326,8 +324,64 @@ public class Network
                 return feasibleSet.get(i);
             }
         }
-        return feasibleSet.get(random.nextInt(0, feasibleSet.size()));
+        return feasibleSet.get(random.nextInt(feasibleSet.size()));
     }
+
+    public Map<Node, Double> exploitation1(Agent a, Table table) 
+    {
+
+        double delta = 1;
+        double beta =2;
+        HashSet<Node> feasibleSet = new HashSet<>(a.agentFeasibleSet());
+        Node curNode = a.getCurrent();
+        Map<Node, Double> d = new HashMap<>();
+        for (Node neighbor : feasibleSet) 
+        {
+            double qVal = table.getQvalue(curNode.getID(), neighbor.getID());
+            double cost = curNode.getNeighbor(neighbor);
+           
+            double res = (Math.pow(qVal, delta)) / Math.pow(cost, beta);
+            d.put(neighbor,res<0?0:res);
+        }
+        return sortByValueDescending(d);    
+    }
+   
+
+    public Node exploration1(Agent agent, Table table) 
+    {
+        double delta = 1;
+        double beta =2;
+        Random random = new Random();
+        List<Node> feasibleSet = new ArrayList<>(agent.agentFeasibleSet());
+        List<Double> probabilities = new ArrayList<>();
+        double total = 0;
+
+        for (Node n : feasibleSet) {
+            double Q = table.getQvalue(agent.getCurrent().getID(), n.getID());
+            double w = agent.getCurrent().getNeighbor(n);
+            
+            double prob = Math.pow(Q, delta) / Math.pow(w, beta);
+            probabilities.add(prob);
+            total += prob; // Accumulate total probability
+        }
+
+        // Normalize probabilities
+        for (int i = 0; i < probabilities.size(); i++) {
+            probabilities.set(i, probabilities.get(i) / total);
+        }
+
+        double selectedProbability = random.nextDouble();
+        double cumulativeProbability = 0.0;
+        for (int i = 0; i < probabilities.size(); i++) {
+            cumulativeProbability += probabilities.get(i);
+            if (selectedProbability <= cumulativeProbability) {
+                return feasibleSet.get(i);
+            }
+        }
+        return feasibleSet.get(random.nextInt(feasibleSet.size()));
+    }
+
+    
 
     
 
@@ -354,6 +408,24 @@ public class Network
             if(d>dataPackets)
             {
                 dataPackets = d;
+                best = agent;
+            }
+        }
+
+        return best;
+    }
+
+    public Agent bestAgent1(List<Agent> agents)
+    {
+        Agent best = null;
+        double cost = Double.POSITIVE_INFINITY;
+       
+        for(Agent agent : agents)
+        {
+            double d = agent.getCost();
+            if(d<cost)
+            {
+                cost = d;
                 best = agent;
             }
         }
@@ -389,14 +461,7 @@ public class Network
         {
             node.setNodeBattery(6480);
         }
-    }
-   
-
-    
-    
-    
-    
-    
+    }   
 }
     
 

@@ -6,14 +6,9 @@ import java.util.Scanner;
 
 public class LoadNetworkfromFile 
 {
-    private String fileName;
+   
 
-    public LoadNetworkfromFile(String fileName)
-    {
-        this.fileName = fileName;
-    }
-
-    public List<Node> loadNetwork()
+    public List<Node> loadNetwork(String fileName)
     {
         List<Node> nodes = new ArrayList<>();
         try
@@ -45,5 +40,7 @@ public class LoadNetworkfromFile
         }
         return nodes;
     }
+    
+
     
 }

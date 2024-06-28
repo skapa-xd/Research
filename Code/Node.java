@@ -7,13 +7,15 @@ import java.util.Set;
 public class Node
 {
     private int id; // node id
+    private String name;
     private int x; // node x co-ordinate
     private int y; // node y co-ordinate
+    private double longitude;
+    private double latitude;
     private boolean isDataNode; // returns true if node is data node, false if storage node
     private int dataPackets; // number of data packets of the node only
     private int totalDataPackets; // number of data packets of all nodes which fall within the CSP range
-    private int dp; // changing data packets CSP1 DYNAMIC 
-    private int dp2; // changing data packets CSP2 DYNAMIC
+    
     private static int counter = 0; // id counter
     private HashMap<Node, Double> neighbors; // node neighbors, calculated by transmission range definition
     private HashMap<Node, Double> rangeNeighbors; // node ranfe neighbors, calculated by robot range definition
@@ -26,9 +28,7 @@ public class Node
         this.y =y;
         this.isDataNode = isDataNode;
         this.dataPackets = dataPackets;
-        this.totalDataPackets = dataPackets;
-        this.dp = 0;
-        this.dp2 =0;
+        this.totalDataPackets = dataPackets;      
         this.id = counter++;
         this.neighbors = new HashMap<>();
         this.rangeNeighbors = new HashMap<>();
@@ -42,13 +42,12 @@ public class Node
         this.isDataNode = isDataNode;
         this.dataPackets = dataPackets;
         this.totalDataPackets = dataPackets;
-        this.dp = 0;
-        this.dp2 =0;
         this.id = id;
         this.neighbors = new HashMap<>();
         this.rangeNeighbors = new HashMap<>();
         this.nodeBattery = 6480;
     }
+
 
     public int getID() // returns id of node
     {
@@ -116,25 +115,6 @@ public class Node
         return this.nodeBattery;
     }
 
-    /* public void setDP(int dataPackets)
-    {
-        this.dp = dataPackets;
-    }
-
-    public int getDP()
-    {
-        return this.dp;
-    }
-    
-    public void setDP2(int dataPackets)
-    {
-        this.dp2 = dataPackets;
-    }
-
-    public int getDP2()
-    {
-        return this.dp2;
-    } */
 
     public void setNeighbor(Node node, double cost) // set the given node as the current node's neighbor with the cost
     {
@@ -195,8 +175,4 @@ public class Node
         getID(), getX(), getY(), isDataNode(), getDataPackets(), getTotalDataPackets(), Arrays.toString(getRangeNeighbors().toArray()));
         System.out.println(s);
     }
-
-    
-
-
 }
