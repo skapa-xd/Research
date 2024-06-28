@@ -1,10 +1,11 @@
+// This class has all the algorithms, TSP1, TSP2, CSP1, CSP2, MARL
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
-
 
 public class Algorithms 
 {
@@ -418,7 +419,7 @@ public class Algorithms
         int hours = 0;
         
         Network network = new Network();
-        
+
         while(network.isNodeDead(nodes) == false)
         {
             for(Node n : nodes)

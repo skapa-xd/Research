@@ -1,3 +1,5 @@
+// Edge class, used for Yang's algorithm to find the Minimum Spanning Tree
+
 public class Edge 
 {
     Node start;

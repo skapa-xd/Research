@@ -1,3 +1,5 @@
+// Agent class which is used in MARL
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
