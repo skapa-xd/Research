@@ -35,7 +35,7 @@ public class Node
         this.nodeBattery = 6480;
         
     }
-    public Node(int id, int x, int y, boolean isDataNode, int dataPackets) // initializing the node
+    public Node(int id, int x, int y, boolean isDataNode, int dataPackets) // initializing the node this is used for when loading the network from a file
     {
         this.x = x;
         this.y =y;
@@ -105,16 +105,15 @@ public class Node
         this.totalDataPackets = dataPackets;
     }
 
-    public void setNodeBattery(double battery)
+    public void setNodeBattery(double battery) // sets the battery of the node
     {
         this.nodeBattery = battery;
     }
 
-    public double getNodeBattery()
+    public double getNodeBattery() // returns the battery of the node
     {
         return this.nodeBattery;
     }
-
 
     public void setNeighbor(Node node, double cost) // set the given node as the current node's neighbor with the cost
     {
