@@ -337,10 +337,10 @@ public class Network
         Map<Node, Double> d = new HashMap<>();
         for (Node neighbor : feasibleSet) 
         {
-            double qVal = table.getQvalue(curNode.getID(), neighbor.getID());
+            double cVal = table.getCvalue(curNode.getID(), neighbor.getID());
             double cost = curNode.getNeighbor(neighbor);
-           
-            double res = (Math.pow(qVal, delta)) / Math.pow(cost, beta);
+            double prize = neighbor.getDataPackets();
+            double res = (Math.pow(cVal, delta) * prize) / Math.pow(cost, beta);
             d.put(neighbor,res<0?0:res);
         }
         return sortByValueDescending(d);    
@@ -357,10 +357,10 @@ public class Network
         double total = 0;
 
         for (Node n : feasibleSet) {
-            double Q = table.getQvalue(agent.getCurrent().getID(), n.getID());
+            double C = table.getCvalue(agent.getCurrent().getID(), n.getID());
             double w = agent.getCurrent().getNeighbor(n);
-            
-            double prob = Math.pow(Q, delta) / Math.pow(w, beta);
+            double d = n.getDataPackets();
+            double prob = Math.pow(C, delta) * d / Math.pow(w, beta);
             probabilities.add(prob);
             total += prob; // Accumulate total probability
         }

@@ -113,14 +113,14 @@ public class Visualizer extends JPanel implements Runnable {
         }
 
         // Use for Yangs
-        g2.setColor(Color.RED);
+       /*  g2.setColor(Color.RED);
             for (int j = 0; j < yang.size(); j++) {
             int nodeIndex1 = yang.get(j).start.getID();
             int nodeIndex2 = yang.get(j).end.getID();
             Point point1 = graphPoints.get(nodeIndex1);
             Point point2 = graphPoints.get(nodeIndex2);
             g2.drawLine(point1.x, point1.y, point2.x, point2.y);
-        }        
+        }         */
     }
 
     public void run() 

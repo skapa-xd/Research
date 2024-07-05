@@ -308,7 +308,7 @@ public class Algorithms
         return mstEdges; // RETURNS list of Edge (use this class)
     }
 
-    // Multi-Agent Reinforcement Learning Algorithm
+    // Multi-Agent Reinforcement Learning Algorithm =========================== ANT-Q based ==============================
     public List<Integer> MARL(List<Node> nodes, int start, double budget, int episodes, int agents, double learningRate, double discountFactor, double tradeoff)
     {
         Network network = new Network();
@@ -325,7 +325,7 @@ public class Algorithms
         {
             for(int agent = 0; agent<agents; agent++) // initializes agents 
             {
-                Agent a = new Agent(base, budget, false, nodes, shortestPaths);
+                Agent a = new Agent(agent, base, budget, false, nodes, shortestPaths);
                 allAgents.add(a);
             }
 
@@ -384,7 +384,7 @@ public class Algorithms
         }
 
         //EXECUTION STAGE, here we just chose the max value from q table and choose the corresponding action
-        Agent bestAgent = new Agent(base, budget, false, nodes, shortestPaths);
+        Agent bestAgent = new Agent(0, base, budget, false, nodes, shortestPaths);
 
         while(bestAgent.agentFeasibleSet().size()!=0)
         {
@@ -411,6 +411,134 @@ public class Algorithms
         System.out.println("---------------------------");
 
         return bestAgent.getRoute(); 
+    }
+
+    // This is the PMARL, multiplicative increase.
+    // run until equals to ILP, to know the min number of episodes
+    public void PMARL(List<Node> nodes, int start, double budget, int episodes, int agents, double learningRate, double discountFactor, double tradeoff)
+    {
+        Network network = new Network();
+        Table table = new Table(1,nodes, nodes.size(), learningRate, discountFactor); // initialize a Q table, R table with size of nodes list
+        List<Agent> allAgents = new ArrayList<>();
+
+        int globalBestPrize = 0;
+        List<Integer> globalBestRoute = new ArrayList<>();
+
+       
+        HashMap<Node, Double> shortestPaths = new HashMap<>(network.findShortestPaths(nodes, nodes.get(start)));
+        Node base = nodes.get(start);
+        
+        // LEARNING STAGE
+        // in this stage the agents update the Q table and R table 
+        for(int episode = 1; episode<episodes+1; episode++)
+        {
+            //System.out.println("----------------------THIS IS EPSIODE "+ episode + "-------------------------------------- ");
+            for(int agent = 0; agent<agents; agent++) // initializes agents 
+            {
+                Agent a = new Agent(agent, base, budget, false, nodes, shortestPaths);
+                allAgents.add(a);
+            }
+
+            while(network.isAnyAgentActive(allAgents)) // works until all are finished
+            {
+                for(Agent agent : allAgents)
+                {
+                    //System.out.println("+++++++++ Agent "+ agent.getAgentID() + "++++++++++++++++");
+                    if(agent.isDone()== false)
+                    {
+                        if(agent.agentFeasibleSet().isEmpty()) // if no feasible node then agent terminates
+                        {
+                            agent.updateDone(true);
+                            agent.addNode(base);
+                            agent.addCost(agent.getCurrent(), base);
+                            agent.updateBudget(agent.getCurrent(), base);
+                            //System.out.println("Current: "+ agent.getCurrent().getID()+ "terminated no feasible" );
+                            agent.updateCurrent(base);
+                        }
+                        else // take a random variable from 0 to 1 and decide the action, either EXPLORE or EXPLOIT
+                        {
+                            Random random = new Random();
+                            double rand = random.nextDouble();
+                            Node next;
+
+                            if(rand <= tradeoff)
+                            {
+                                next = network.exploitation1(agent, table).entrySet().iterator().next().getKey(); // this is a linked hashmap, in linked hashmap you can store the key value pair in asc/desc order
+                                //System.out.println("Agent chose to exploite and is going :" + next.getID());
+                            }
+                            else
+                            {
+                                next = network.exploration1(agent, table);
+                                //System.out.println("Agent chose to explore and is going :" + next.getID());
+                            }
+                            agent.addNode(next);
+                            agent.addCost(agent.getCurrent(), next);
+                            agent.updateBudget(agent.getCurrent(), next);
+                            agent.updateData(next);
+                            //table.updateQvalue(agent.getCurrent().getID(), next.getID(), agent.getBudget(), agent.getUnvisited(), shortestPaths);
+                            agent.updateUnvisited(next);
+                            agent.updateCurrent(next);  
+                            //System.out.println("Agent"+ agent.getRoute());
+                        }
+                    }
+                }
+            }
+            // at end of every episode the best agent (collected more data packets) will be selected and the route will be reflected in Q table 
+            Agent best = network.bestAgent(allAgents);
+            //System.out.println("Best agent is "+ best.getAgentID());
+            if(best.getDataPackets() > globalBestPrize) // checks if the best agent of the episode is better than global best
+            {
+                //System.out.println("The new global best found is " + best.getDataPackets()+ " at episode "+ episode);
+                //System.out.println("Route: " + best.getRoute());
+                globalBestPrize = best.getDataPackets();
+                globalBestRoute = best.getRoute();
+                //table.printTableQ();
+                //table.printTableR();
+                //table.printTableC();
+                for(int i = 0; i< best.getRoute().size()-1; i++)
+                {
+                    int state = best.getRoute().get(i);
+                    int action = best.getRoute().get(i+1);
+
+                    table.updateRValue(episode, state, action, best.getDataPackets());
+                    table.updateQvalue2(state, action, best.getBudget(), best.getUnvisited(), shortestPaths);
+                }
+                //table.printTableR();
+                //table.printTableQ();
+                allAgents.clear(); // clears list of agents
+
+            }
+             
+        }
+
+        //EXECUTION STAGE, here we just chose the max value from q table and choose the corresponding action
+        Agent bestAgent = new Agent(0, base, budget, false, nodes, shortestPaths);
+
+        while(bestAgent.agentFeasibleSet().size()!=0)
+        {
+            Node next = table.getQMaxValue(bestAgent.getCurrent().getID(), bestAgent.getBudget(), bestAgent.getUnvisited(), shortestPaths);
+            //System.out.println("Current" + bestAgent.getCurrent().getID() + "Next" + next.getID() + "Budget" + bestAgent.getBudget());
+            bestAgent.addNode(next);
+            bestAgent.addCost(bestAgent.getCurrent(), next);
+            bestAgent.updateBudget(bestAgent.getCurrent(), next);
+            bestAgent.updateData(next);
+            bestAgent.updateUnvisited(next);
+            bestAgent.updateCurrent(next);  
+        }
+
+        bestAgent.addNode(base);
+        bestAgent.addCost(bestAgent.getCurrent(), base);
+        bestAgent.updateBudget(bestAgent.getCurrent(), base);
+        
+        System.out.println("----------PMARL------------");
+        System.out.println("Route: " + bestAgent.getRoute());
+        System.out.println("Cost: " + bestAgent.getCost());
+        System.out.println("Data Collected: " + bestAgent.getDataPackets());
+        System.out.println("Budget Reamining: " + bestAgent.getBudget()/3600);
+        System.out.println("Budget Used: " + (budget*3600 - bestAgent.getBudget())/3600);
+        System.out.println("---------------------------");
+
+        //return bestAgent.getRoute(); 
     }
 
     // This is used to get time when the first node dies in TSP2. Usefull to caluclate network longevity

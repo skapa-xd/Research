@@ -8,6 +8,7 @@ import java.util.Set;
 
 public class Agent 
 {
+    private int agentID; 
     private Node curr; // current node where the agent is
     private double budget; // current budget of the agent
     private int dataPackets; // data packets collected 
@@ -20,7 +21,7 @@ public class Agent
     Network network = new Network();
 
     
-    public Agent(Node curr, double budget, boolean isDone, List<Node> nodes, HashMap<Node, Double> shortestPaths)
+    public Agent(int id, Node curr, double budget, boolean isDone, List<Node> nodes, HashMap<Node, Double> shortestPaths)
     {   
         this.curr = curr;
         this.budget = budget*3600; // conversion for Watt Hours to Joules
@@ -32,8 +33,17 @@ public class Agent
         this.cost= 0;
         this.route = new ArrayList<>();
         this.route.add(curr.getID()); // add starting node to the route
+        this.agentID = id;
     }
 
+    public int getAgentID() {
+        return agentID;
+    }
+
+    public void setAgentID(int agentID) {
+        this.agentID = agentID;
+    }
+    
     // adds node to the route
     public void addNode(Node node)
     {
