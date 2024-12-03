@@ -1,5 +1,8 @@
 // This class has all the algorithms, TSP1, TSP2, CSP1, CSP2, MARL
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -103,7 +106,7 @@ public class Algorithms
 
         while(!Unvisited.isEmpty() && network.feasibleSet(curr, Budget, shortestPaths, Unvisited)!= null) // run untill all nodes visited or no feasible nodes available from current node
         {
-            Node node = network.bestPrizeCostRatioNodeCSP(curr, Budget, shortestPaths, Unvisited, Collected); // gives the best next node max(data packets from self + neighbor)/distance
+            Node node = network.bestCoveredPrizeCostRatioNode(curr, Budget, shortestPaths, Unvisited, Collected); // gives the best next node max(data packets from self + neighbor)/distance
         
             if(node == null)
             {
@@ -127,7 +130,7 @@ public class Algorithms
             {
                 currPrize = currPrize + node.getDataPackets();
             }
-            Budget = Budget- node.getNeighbor(curr)*100 -2*100*currPrize*3200/1000000000; // here we are deducting the battery consumption of the robot to receive within range
+            Budget = Budget- node.getNeighbor(curr)*100 /* -2*100*currPrize*3200/1000000000 */; // here we are deducting the battery consumption of the robot to receive within range
             Prize = Prize + currPrize;
             Collected.add(node);
             Collected.addAll(node.getRangeNeighborList());
@@ -143,6 +146,7 @@ public class Algorithms
         System.out.println("Cost: " + Cost);
         System.out.println("Data Collected: " + Prize);
         System.out.println("Collected from :" + Collected.size());
+        System.out.println("Visit: " + (Route.size()-1));
         System.out.println("Budget Reamining: " + Budget/3600);
         System.out.println("Budget USed: " + (budget*3600 - Budget)/3600); // conversion back to WH
         System.out.println("---------------------------");
@@ -207,7 +211,7 @@ public class Algorithms
     }
 
     // GEOMETRIC TSP 2, robot will always go to the node with highest prize cost ration calculated as data packets / distance
-    public List<Integer> gTSP2(List<Node> nodes, int start, double budget)
+    public List<Integer> gTSP2(List<Node> nodes, int start, double budget, boolean end)
     {
         Network network = new Network();
 
@@ -216,13 +220,22 @@ public class Algorithms
         int Prize = 0;
         List<Integer> Route = new ArrayList<>();
         HashSet<Node> Unvisited = new HashSet<>(nodes);
+        HashMap<Node, Double> shortestPaths = new HashMap<>();
 
         Node base = nodes.get(0);
+        Node target = nodes.getLast();
         Node curr = base;
         Route.add(base.getID());
         Unvisited.remove(base);
-
-        HashMap<Node, Double> shortestPaths = network.findShortestPaths(nodes, curr);
+        if(end)
+        {
+            shortestPaths = network.findShortestPaths(nodes, curr);
+        }
+        else{
+            shortestPaths = network.findShortestPaths(nodes, target);
+            Unvisited.remove(target);
+        }
+        
 
         while(!Unvisited.isEmpty() && network.feasibleSet(curr, Budget, shortestPaths, Unvisited)!= null)
             {
@@ -238,9 +251,19 @@ public class Algorithms
                 Unvisited.remove(node);
                 curr = node;
             }
-            Route.add(base.getID());
-            Cost = Cost + shortestPaths.get(curr);
-            Budget = Budget - shortestPaths.get(curr)*100;
+            if(end)
+            {
+                Route.add(base.getID());
+                Cost = Cost + shortestPaths.get(curr);
+                Budget = Budget - shortestPaths.get(curr)*100;
+            }
+            else
+            {
+                Route.add(target.getID());
+                Cost = Cost + shortestPaths.get(curr);
+                Budget = Budget - shortestPaths.get(curr)*100;
+            }
+            
 
             System.out.println("----------gTSP2------------");
             System.out.println("Route: " + Route);
@@ -309,23 +332,31 @@ public class Algorithms
     }
 
     // Multi-Agent Reinforcement Learning Algorithm =========================== ANT-Q based ==============================
-    public List<Integer> MARL(List<Node> nodes, int start, double budget, int episodes, int agents, double learningRate, double discountFactor, double tradeoff)
+    public List<Integer> MARL(List<Node> nodes, int start, int depot, boolean end, double budget, int episodes, int agents, double learningRate, double discountFactor, double tradeoff) throws FileNotFoundException
     {
         Network network = new Network();
         Table table = new Table(nodes, nodes.size(), learningRate, discountFactor); // initialize a Q table, R table with size of nodes list
         List<Agent> allAgents = new ArrayList<>();
+        Node base = nodes.get(start);
+        Node target = nodes.get(depot);
+        int lastQUpdate =0;
+
 
        
-        HashMap<Node, Double> shortestPaths = new HashMap<>(network.findShortestPaths(nodes, nodes.get(start)));
-        Node base = nodes.get(start);
-        
-        // LEARNING STAGE
+        HashMap<Node, Double> shortestPaths = new HashMap<>();
+        if(end)
+        {
+            shortestPaths = network.findShortestPaths(nodes, nodes.getFirst());
+        }
+        else{
+            shortestPaths = network.findShortestPaths(nodes, nodes.getLast());
+        }
         // in this stage the agents update the Q table and R table 
-        for(int episode = 0; episode<episodes; episode++)
+        for(int episode = 1; episode<episodes+1; episode++)
         {
             for(int agent = 0; agent<agents; agent++) // initializes agents 
             {
-                Agent a = new Agent(agent, base, budget, false, nodes, shortestPaths);
+                Agent a = new Agent(agent, base, target, end, budget, false, nodes, shortestPaths);
                 allAgents.add(a);
             }
 
@@ -337,12 +368,24 @@ public class Algorithms
                     {
                         if(agent.agentFeasibleSet().isEmpty()) // if no feasible node then agent terminates
                         {
-                            agent.updateDone(true);
-                            agent.addNode(base);
-                            agent.addCost(agent.getCurrent(), base);
-                            agent.updateBudget(agent.getCurrent(), base);
-                            table.updateQvalue(agent.getCurrent().getID(), base.getID(), agent.getBudget(), agent.getUnvisited(), shortestPaths);
-                            agent.updateCurrent(base);
+                            if(end) // base == target
+                            {
+                                agent.updateDone(true);
+                                agent.addNode(base);
+                                agent.addCost(agent.getCurrent(), base);
+                                agent.updateBudget(agent.getCurrent(), base);
+                                table.updateQvalue(agent.getCurrent().getID(), base.getID(), agent.getBudget(), agent.getUnvisited(), shortestPaths);
+                                agent.updateCurrent(base);
+                            }
+                            else
+                            {
+                                agent.updateDone(true);
+                                agent.addNode(target);
+                                agent.addCost(agent.getCurrent(), target);
+                                agent.updateBudget(agent.getCurrent(), target);
+                                table.updateQvalue(agent.getCurrent().getID(), target.getID(), agent.getBudget(), agent.getUnvisited(), shortestPaths);
+                                agent.updateCurrent(target);
+                            }  
                         }
                         else // take a random variable from 0 to 1 and decide the action, either EXPLORE or EXPLOIT
                         {
@@ -381,11 +424,12 @@ public class Algorithms
                 table.updateQvalue2(state, action, best.getBudget(), best.getUnvisited(), shortestPaths);
             }
             allAgents.clear(); // clears list of agents 
-        }
+            
+    }
 
-        //EXECUTION STAGE, here we just chose the max value from q table and choose the corresponding action
-        Agent bestAgent = new Agent(0, base, budget, false, nodes, shortestPaths);
-
+        
+        Agent bestAgent = new Agent(0, base,target, end, budget, false, nodes, shortestPaths);
+        
         while(bestAgent.agentFeasibleSet().size()!=0)
         {
             Node next = table.getQMaxValue(bestAgent.getCurrent().getID(), bestAgent.getBudget(), bestAgent.getUnvisited(), shortestPaths);
@@ -397,45 +441,60 @@ public class Algorithms
             bestAgent.updateUnvisited(next);
             bestAgent.updateCurrent(next);  
         }
+        if(end)
+        {
+            bestAgent.addNode(base);
+            bestAgent.addCost(bestAgent.getCurrent(), base);
+            bestAgent.updateBudget(bestAgent.getCurrent(), base);
+        }
+        else
+        {
+            bestAgent.addNode(target);
+            bestAgent.addCost(bestAgent.getCurrent(), target);
+            bestAgent.updateBudget(bestAgent.getCurrent(), target);
+        }
 
-        bestAgent.addNode(base);
-        bestAgent.addCost(bestAgent.getCurrent(), base);
-        bestAgent.updateBudget(bestAgent.getCurrent(), base);
-        
         System.out.println("----------MARL------------");
         System.out.println("Route: " + bestAgent.getRoute());
         System.out.println("Cost: " + bestAgent.getCost());
         System.out.println("Data Collected: " + bestAgent.getDataPackets());
         System.out.println("Budget Reamining: " + bestAgent.getBudget()/3600);
-        System.out.println("Budget USed: " + (budget*3600 - bestAgent.getBudget())/3600);
+        System.out.println("Budget Used: " + (budget*3600 - bestAgent.getBudget())/3600);
         System.out.println("---------------------------");
-
-        return bestAgent.getRoute(); 
+        return bestAgent.getRoute();
     }
+        
 
     // This is the PMARL, multiplicative increase.
     // run until equals to ILP, to know the min number of episodes
-    public void PMARL(List<Node> nodes, int start, double budget, int episodes, int agents, double learningRate, double discountFactor, double tradeoff)
+    public Pair CMARL(List<Node> nodes, int start, int depot, boolean end, double budget, int episodes, int agents, double learningRate, double discountFactor, double tradeoff) throws FileNotFoundException
     {
         Network network = new Network();
         Table table = new Table(1,nodes, nodes.size(), learningRate, discountFactor); // initialize a Q table, R table with size of nodes list
         List<Agent> allAgents = new ArrayList<>();
+        Node base = nodes.get(start);
+        Node target = nodes.get(depot);
 
         int globalBestPrize = 0;
-        List<Integer> globalBestRoute = new ArrayList<>();
-
-       
-        HashMap<Node, Double> shortestPaths = new HashMap<>(network.findShortestPaths(nodes, nodes.get(start)));
-        Node base = nodes.get(start);
-        
-        // LEARNING STAGE
-        // in this stage the agents update the Q table and R table 
-        for(int episode = 1; episode<episodes+1; episode++)
+        int counterQ = 0;
+        int lastQUpdate = 0;
+      
+        HashMap<Node, Double> shortestPaths = new HashMap<>();
+        if(end)
         {
-            //System.out.println("----------------------THIS IS EPSIODE "+ episode + "-------------------------------------- ");
+            shortestPaths = network.findShortestPaths(nodes, nodes.get(start));
+        }
+        else
+        {
+            shortestPaths = network.findShortestPaths(nodes, nodes.get(depot));
+        }
+       
+        for(int episode = 1; episode<episodes+1; episode++)
+        {  
+            
             for(int agent = 0; agent<agents; agent++) // initializes agents 
             {
-                Agent a = new Agent(agent, base, budget, false, nodes, shortestPaths);
+                Agent a = new Agent(agent, base, target,end, budget, false, nodes, shortestPaths);
                 allAgents.add(a);
             }
 
@@ -443,17 +502,27 @@ public class Algorithms
             {
                 for(Agent agent : allAgents)
                 {
-                    //System.out.println("+++++++++ Agent "+ agent.getAgentID() + "++++++++++++++++");
                     if(agent.isDone()== false)
                     {
                         if(agent.agentFeasibleSet().isEmpty()) // if no feasible node then agent terminates
                         {
-                            agent.updateDone(true);
-                            agent.addNode(base);
-                            agent.addCost(agent.getCurrent(), base);
-                            agent.updateBudget(agent.getCurrent(), base);
-                            //System.out.println("Current: "+ agent.getCurrent().getID()+ "terminated no feasible" );
-                            agent.updateCurrent(base);
+                            if(end) // base == target
+                            {
+                                agent.updateDone(true);
+                                agent.addNode(base);
+                                agent.addCost(agent.getCurrent(), base);
+                                agent.updateBudget(agent.getCurrent(), base);
+                                agent.updateCurrent(base);
+                            }
+                            else
+                            {
+                                agent.updateDone(true);
+                                agent.addNode(target);
+                                agent.addCost(agent.getCurrent(), target);
+                                agent.updateBudget(agent.getCurrent(), target);
+                                agent.updateCurrent(target);
+                            }
+                            
                         }
                         else // take a random variable from 0 to 1 and decide the action, either EXPLORE or EXPLOIT
                         {
@@ -464,37 +533,29 @@ public class Algorithms
                             if(rand <= tradeoff)
                             {
                                 next = network.exploitation1(agent, table).entrySet().iterator().next().getKey(); // this is a linked hashmap, in linked hashmap you can store the key value pair in asc/desc order
-                                //System.out.println("Agent chose to exploite and is going :" + next.getID());
                             }
                             else
                             {
                                 next = network.exploration1(agent, table);
-                                //System.out.println("Agent chose to explore and is going :" + next.getID());
                             }
                             agent.addNode(next);
                             agent.addCost(agent.getCurrent(), next);
                             agent.updateBudget(agent.getCurrent(), next);
                             agent.updateData(next);
-                            //table.updateQvalue(agent.getCurrent().getID(), next.getID(), agent.getBudget(), agent.getUnvisited(), shortestPaths);
                             agent.updateUnvisited(next);
                             agent.updateCurrent(next);  
-                            //System.out.println("Agent"+ agent.getRoute());
                         }
                     }
                 }
             }
             // at end of every episode the best agent (collected more data packets) will be selected and the route will be reflected in Q table 
             Agent best = network.bestAgent(allAgents);
-            //System.out.println("Best agent is "+ best.getAgentID());
+    
             if(best.getDataPackets() > globalBestPrize) // checks if the best agent of the episode is better than global best
             {
-                //System.out.println("The new global best found is " + best.getDataPackets()+ " at episode "+ episode);
-                //System.out.println("Route: " + best.getRoute());
                 globalBestPrize = best.getDataPackets();
-                globalBestRoute = best.getRoute();
-                //table.printTableQ();
-                //table.printTableR();
-                //table.printTableC();
+                
+
                 for(int i = 0; i< best.getRoute().size()-1; i++)
                 {
                     int state = best.getRoute().get(i);
@@ -503,17 +564,15 @@ public class Algorithms
                     table.updateRValue(episode, state, action, best.getDataPackets());
                     table.updateQvalue2(state, action, best.getBudget(), best.getUnvisited(), shortestPaths);
                 }
-                //table.printTableR();
-                //table.printTableQ();
-                allAgents.clear(); // clears list of agents
-
             }
-             
+            allAgents.clear();
+            
         }
-
-        //EXECUTION STAGE, here we just chose the max value from q table and choose the corresponding action
-        Agent bestAgent = new Agent(0, base, budget, false, nodes, shortestPaths);
-
+        //System.out.println("Q got updated " + counterQ + " times.");
+        
+        
+        Agent bestAgent = new Agent(0, base, target, end, budget, false, nodes, shortestPaths);
+        
         while(bestAgent.agentFeasibleSet().size()!=0)
         {
             Node next = table.getQMaxValue(bestAgent.getCurrent().getID(), bestAgent.getBudget(), bestAgent.getUnvisited(), shortestPaths);
@@ -525,21 +584,239 @@ public class Algorithms
             bestAgent.updateUnvisited(next);
             bestAgent.updateCurrent(next);  
         }
+        if(end)
+        {
+            bestAgent.addNode(base);
+            bestAgent.addCost(bestAgent.getCurrent(), base);
+            bestAgent.updateBudget(bestAgent.getCurrent(), base);
+        }
+        else
+        {
+            bestAgent.addNode(target);
+            bestAgent.addCost(bestAgent.getCurrent(), target);
+            bestAgent.updateBudget(bestAgent.getCurrent(), target);
+        }
 
-        bestAgent.addNode(base);
-        bestAgent.addCost(bestAgent.getCurrent(), base);
-        bestAgent.updateBudget(bestAgent.getCurrent(), base);
-        
-        System.out.println("----------PMARL------------");
+        System.out.println("----------CMARL------------");
         System.out.println("Route: " + bestAgent.getRoute());
         System.out.println("Cost: " + bestAgent.getCost());
         System.out.println("Data Collected: " + bestAgent.getDataPackets());
         System.out.println("Budget Reamining: " + bestAgent.getBudget()/3600);
         System.out.println("Budget Used: " + (budget*3600 - bestAgent.getBudget())/3600);
         System.out.println("---------------------------");
-
-        //return bestAgent.getRoute(); 
+        
+        return new Pair(table, bestAgent.getRoute(), bestAgent.getBudget());
     }
+
+    public List<Integer> transferLearning(int start, int end, List<Node> nodes, Table table, double budget) throws FileNotFoundException
+    {
+       
+        Network network = new Network();
+        Table table1 = new Table(table.symmetricQUpdate(0.3, 0.7), nodes);
+        Node base = nodes.get(start);
+        Node target = nodes.get(end);
+        List<Integer> Route = new ArrayList<>();
+        List<Agent> allAgents = new ArrayList<>();
+        int globalBestPrize = 0;
+        int lastQUpdate=2500;
+        
+        HashMap<Node, Double> shortestPaths = network.findShortestPaths(nodes, target);
+
+       
+        
+        PrintStream out = new PrintStream(new FileOutputStream("Transfer.txt"));
+        System.setOut(out);
+        
+        for(int episode = 1; episode<30000+1; episode++)
+        {  
+           
+           
+            for(int agent = 0; agent<30; agent++) // initializes agents 
+            {
+                Agent a = new Agent(agent, base, target,false, budget, false, nodes, shortestPaths);
+                allAgents.add(a);
+            }
+
+            while(network.isAnyAgentActive(allAgents)) // works until all are finished
+            {
+                for(Agent agent : allAgents)
+                {
+                    if(agent.isDone()== false)
+                    {
+                        if(agent.agentFeasibleSet().isEmpty()) // if no feasible node then agent terminates
+                        {
+                            if(end == start) // base == target
+                            {
+                                agent.updateDone(true);
+                                agent.addNode(base);
+                                agent.addCost(agent.getCurrent(), base);
+                                agent.updateBudget(agent.getCurrent(), base);
+                                agent.updateCurrent(base);
+                            }
+                            else
+                            {
+                                agent.updateDone(true);
+                                agent.addNode(target);
+                                agent.addCost(agent.getCurrent(), target);
+                                agent.updateBudget(agent.getCurrent(), target);
+                                agent.updateCurrent(target);
+                            }
+                            
+                        }
+                        else // take a random variable from 0 to 1 and decide the action, either EXPLORE or EXPLOIT
+                        {
+                            Random random = new Random();
+                            double rand = random.nextDouble();
+                            Node next;
+
+                            if(rand <= 0.5)
+                            {
+                                next = network.exploitationR(agent, table1).entrySet().iterator().next().getKey(); // this is a linked hashmap, in linked hashmap you can store the key value pair in asc/desc order
+                            }
+                            else
+                            {
+                                next = network.exploration1(agent, table1);
+                            }
+                            agent.addNode(next);
+                            agent.addCost(agent.getCurrent(), next);
+                            agent.updateBudget(agent.getCurrent(), next);
+                            agent.updateData(next);
+                            agent.updateUnvisited(next);
+                            agent.updateCurrent(next);  
+                        }
+                    }
+                }
+            }
+            // at end of every episode the best agent (collected more data packets) will be selected and the route will be reflected in Q table 
+            Agent best = network.bestAgent(allAgents);
+    
+            
+            if(best.getDataPackets() > globalBestPrize) // checks if the best agent of the episode is better than global best
+            {
+                globalBestPrize = best.getDataPackets();
+                //System.out.println("Q updated with " + best.getDataPackets());
+
+                for(int i = 0; i< best.getRoute().size()-1; i++)
+                {
+                    System.out.println("Q got updated : " + globalBestPrize );
+                    int state = best.getRoute().get(i);
+                    int action = best.getRoute().get(i+1);
+
+                    table1.updateRValue(episode, state, action, best.getDataPackets());
+                    table1.updateReverseQvalue2(state, action, best.getBudget(), best.getUnvisited(), shortestPaths);
+                }
+            }
+            allAgents.clear();
+            
+        }
+        //System.out.println("Q got updated " + counterQ + " times.");
+        
+        
+        Agent bestAgent = new Agent(0, base, target, false, budget, false, nodes, shortestPaths);
+        
+        while(bestAgent.agentFeasibleSet().size()!=0)
+        {
+            Node next = table1.getQMaxValueR(bestAgent.getCurrent().getID(), bestAgent.getBudget(), bestAgent.getUnvisited(), shortestPaths);
+            //System.out.println("Current" + bestAgent.getCurrent().getID() + "Next" + next.getID() + "Budget" + bestAgent.getBudget());
+            bestAgent.addNode(next);
+            bestAgent.addCost(bestAgent.getCurrent(), next);
+            bestAgent.updateBudget(bestAgent.getCurrent(), next);
+            bestAgent.updateData(next);
+            bestAgent.updateUnvisited(next);
+            bestAgent.updateCurrent(next);  
+        }
+        if(end == start)
+        {
+            bestAgent.addNode(base);
+            bestAgent.addCost(bestAgent.getCurrent(), base);
+            bestAgent.updateBudget(bestAgent.getCurrent(), base);
+        }
+        else
+        {
+            bestAgent.addNode(target);
+            bestAgent.addCost(bestAgent.getCurrent(), target);
+            bestAgent.updateBudget(bestAgent.getCurrent(), target);
+        }
+
+        System.out.println("----------Transfer Learning------------");
+        System.out.println("Route: " + bestAgent.getRoute());
+        System.out.println("Cost: " + bestAgent.getCost());
+        System.out.println("Data Collected: " + bestAgent.getDataPackets());
+        System.out.println("Budget Reamining: " + bestAgent.getBudget()/3600);
+        System.out.println("Budget Used: " + (budget*3600 - bestAgent.getBudget())/3600);
+        System.out.println("---------------------------------------");
+       
+
+        return Route;
+    }
+
+    /* public void TL1(List<Node> nodes, Pair pair)
+    {
+        Network network = new Network();
+        Table table = new Table(pair.getTable().symmetricQUpdate(0.3, 0.7), nodes);
+        Node base = nodes.getLast();
+        Node target = nodes.getFirst();
+        double budget = 1000;
+        HashMap<Node, Double> shortestPaths = network.findShortestPaths(nodes, target);
+        Agent bestAgent = new Agent(0, base, target, false, budget, false, nodes, shortestPaths);
+        double remainingBudget = pair.getBudgte();
+
+        int B = table.action(bestAgent.getCurrent().getID());
+        
+        for(int i =0; i<1000; i++)
+        {
+
+        
+        while(bestAgent.getCurrent() != target)
+        {   
+            if(!network.isDataBetter(nodes.get(B)))
+            {
+                int C = table.action(B);
+               next = network.localSearch(bestAgent.getCurrent(), next, nodes, pair.getRoute(), remainingBudget ); // check this
+               int  b = next.getID();
+               table.updateQvalue(x, a, b);
+               remainingBudget = remainingBudget - bestAgent.getCurrent().getNeighbor(next);
+               bestAgent.addNode(next);
+                bestAgent.addCost(bestAgent.getCurrent(), next);
+                bestAgent.updateBudget(bestAgent.getCurrent(), next);
+                bestAgent.updateData(next);
+                bestAgent.updateUnvisited(next);
+                bestAgent.updateCurrent(next);
+                
+                
+                int y = table.action(a);
+                table.updateQvalue2(a, y,b );
+            }
+            else
+            {
+                bestAgent.addNode(next);
+                bestAgent.addCost(bestAgent.getCurrent(), next);
+                bestAgent.updateBudget(bestAgent.getCurrent(), next);
+                bestAgent.updateData(next);
+                bestAgent.updateUnvisited(next);
+                bestAgent.updateCurrent(next); 
+            }
+            
+             
+        }
+        
+        bestAgent.addNode(target);
+        bestAgent.addCost(bestAgent.getCurrent(), target);
+        bestAgent.updateBudget(bestAgent.getCurrent(), target);
+        System.out.println(bestAgent.getDataPackets());
+    }
+
+        System.out.println("----------Transfer Learning------------");
+        System.out.println("Route: " + bestAgent.getRoute());
+        System.out.println("Cost: " + bestAgent.getCost());
+        System.out.println("Data Collected: " + bestAgent.getDataPackets());
+        System.out.println("Budget Reamining: " + bestAgent.getBudget()/3600);
+        System.out.println("Budget Used: " + (budget*3600 - bestAgent.getBudget())/3600);
+        System.out.println("---------------------------------------");
+
+    } */
+
+    
 
     // This is used to get time when the first node dies in TSP2. Usefull to caluclate network longevity
     public int getHoursTSP2(List<Node> nodes, int min, int max)
@@ -559,7 +836,7 @@ public class Algorithms
                 n.setNodeBattery(battery);              
             }
             hours++;
-            gTSP2(nodes, 0, 800);
+            gTSP2(nodes, 0, 800, true);
         }
         return hours;
     }

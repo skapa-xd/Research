@@ -13,10 +13,9 @@ import java.util.List;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-
 public class Visualizer extends JPanel implements Runnable {
 
-    private static final long serialVersionUID = 1L;
+    
 
     private List<Node> nodes;
     private double graphWidth;
@@ -35,6 +34,14 @@ public class Visualizer extends JPanel implements Runnable {
         invalidate();
         repaint();
     }
+    public Visualizer(List<Node> nodes, double width, double height) {
+        this.nodes = nodes;
+        this.graphWidth = width;
+        this.graphHeight = height;
+        this.algo = null;
+        invalidate();
+        repaint();
+    }
     public Visualizer(List<Node> nodes,List<Edge> yang, double width, double height) {
         this.nodes = nodes;
         this.graphWidth = width;
@@ -50,11 +57,11 @@ public class Visualizer extends JPanel implements Runnable {
         Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        double xScale = ((getWidth() - 3 * scaling) / (graphWidth));
-        double yScale = ((getHeight() - 3 * scaling) / (graphHeight));
+        double xScale = ((getWidth() - 5 * scaling) / (graphWidth));
+        double yScale = ((getHeight() - 5 * scaling) / (graphHeight));
 
         List<Point> graphPoints = new ArrayList<Point>();
-        for (Node node : nodes) {
+        for (Node node : this.nodes) {
             double x1 = (node.getX() * (xScale) + (2 * scaling));
             double y1 = ((graphHeight - node.getY()) * yScale + scaling);
             Point point = new Point();
@@ -86,31 +93,35 @@ public class Visualizer extends JPanel implements Runnable {
         g2.setFont(largerFont);
 
         for (int i = 0; i < graphPoints.size(); i++) {
-            double x = graphPoints.get(i).x - (metrics.stringWidth("" + nodes.get(i).getID()) / 2.0);
+            double x = graphPoints.get(i).x - (metrics.stringWidth("" + this.nodes.get(i).getID()) / 2.0);
             double y = graphPoints.get(i).y + ovalSize + textHeight + textPadding;
             g2.setColor(Color.red);
             g2.setFont(largerFont.deriveFont(Font.BOLD));
-            g2.drawString(String.format("%d", nodes.get(i).getID()), (int) x, (int) y);
+            g2.drawString(String.format("%d", this.nodes.get(i).getID()), (int) x, (int) y);
             
             // Calculate the x-coordinate for data packets to align them with the ID
-            double xData = x + metrics.stringWidth("" + nodes.get(i).getID()) + 22; // Adjust this value as needed
+            double xData = x + metrics.stringWidth("" + this.nodes.get(i).getID()) + 22; // Adjust this value as needed
             
             g2.setColor(Color.darkGray);
-            g2.drawString(String.format("(%d)", nodes.get(i).getDataPackets()), (int) xData, (int) y);
+            g2.drawString(String.format("(%d)", this.nodes.get(i).getDataPackets()), (int) xData, (int) y);
         }
         
         Stroke stroke = new BasicStroke(2f);
         g2.setStroke(stroke);
 
         // Use for TSP,CSP and MARL
-        g2.setColor(Color.green); 
+        if(algo != null)
+        {
+            g2.setColor(Color.green); 
             for (int j = 0; j < algo.size() - 1; j++) {
             int nodeIndex1 = algo.get(j);
             int nodeIndex2 = algo.get(j + 1);
             Point point1 = graphPoints.get(nodeIndex1);
             Point point2 = graphPoints.get(nodeIndex2);
             g2.drawLine(point1.x, point1.y, point2.x, point2.y);
+            }
         }
+        
 
         // Use for Yangs
        /*  g2.setColor(Color.RED);
@@ -122,6 +133,8 @@ public class Visualizer extends JPanel implements Runnable {
             g2.drawLine(point1.x, point1.y, point2.x, point2.y);
         }         */
     }
+
+
 
     public void run() 
     {

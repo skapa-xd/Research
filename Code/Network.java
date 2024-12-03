@@ -18,46 +18,87 @@ public class Network
         return random.nextInt(max - min) + min;
     }
 
-    public List<Node> generateNodes(int width, int length, int totalNodes, int tr) // generates nodes randomly in the given sensor network parameters
+    public List<Node> generateNodes(int width, int length, int totalNodes, int tr, boolean end) // generates nodes randomly in the given sensor network parameters
     {
         Random random = new Random();
         List<Node> nodes = new ArrayList<>(); // stores all nodes 
         nodes.add(new Node(0, 0, false, 0)); // start node at 0,0
-    
-        for (int i = 1; i < totalNodes; i++) {
-            Node node; // create a new node
-            int x= 0;
-            int y= 0;
-            boolean isValidLocation = false;
-            
-            
-            while (!isValidLocation) 
+        if(end == true)
+        {
+            for (int i = 1; i < totalNodes; i++) 
             {
-                x = random.nextInt(width + 1); 
-                y = random.nextInt(length + 1);
-                isValidLocation = true; 
-
-                for (Node existingNode : nodes) 
+                Node node; // create a new node
+                int x= 0;
+                int y= 0;
+                boolean isValidLocation = false;
+                
+                while (!isValidLocation) 
                 {
-                    double distance = distance(x, y, existingNode.getX(), existingNode.getY());
-                    if (distance <= tr) 
+                    x = random.nextInt(width + 1); 
+                    y = random.nextInt(length + 1);
+                    isValidLocation = true; 
+
+                    for (Node existingNode : nodes) 
                     {
-                        isValidLocation = false; // Too close to an existing node, regenerate
-                        break;
+                        double distance = distance(x, y, existingNode.getX(), existingNode.getY());
+                        if (distance <= tr) 
+                        {
+                            isValidLocation = false; // Too close to an existing node, regenerate
+                            break;
+                        }
                     }
                 }
-            }
-            
-            
-            int data = getRandomNumberUsingNextInt(0,100); // DataNodes can hold dataPackets from 500 to 1000
+                
+                int data = getRandomNumberUsingNextInt(0,100); // DataNodes can hold dataPackets from 0 to 100
 
-            if (data == 0) { 
-                node = new Node(x, y, false, data); 
-            } else {
-                node = new Node(x, y, true, data); 
+                if (data == 0) { 
+                    node = new Node(x, y, false, data); 
+                } else {
+                    node = new Node(x, y, true, data); 
+                }
+                nodes.add(node);
             }
-            nodes.add(node);
+
         }
+        else
+        {
+            for (int i = 1; i < totalNodes-1; i++) 
+            {
+                Node node; // create a new node
+                int x= 0;
+                int y= 0;
+                boolean isValidLocation = false;
+                
+                while (!isValidLocation) 
+                {
+                    x = random.nextInt(width + 1); 
+                    y = random.nextInt(length + 1);
+                    isValidLocation = true; 
+
+                    for (Node existingNode : nodes) 
+                    {
+                        double distance = distance(x, y, existingNode.getX(), existingNode.getY());
+                        if (distance <= tr) 
+                        {
+                            isValidLocation = false; // Too close to an existing node, regenerate
+                            break;
+                        }
+                    }
+                }
+                
+                int data = getRandomNumberUsingNextInt(0,100); // DataNodes can hold dataPackets from 500 to 1000
+
+                if (data == 0) { 
+                    node = new Node(x, y, false, data); 
+                } else {
+                    node = new Node(x, y, true, data); 
+                }
+                nodes.add(node);
+            }
+        }
+        nodes.add(new Node(width, length, false, 0));
+    
+        
         return nodes;
     }
 
@@ -174,7 +215,7 @@ public class Network
         return bestNode;
     }
 
-     public Node bestPrizeCostRatioNodeCSP(Node current, double budget, HashMap<Node, Double> shortestPaths, HashSet<Node> unvisited, HashSet<Node> collected)
+     public Node bestCoveredPrizeCostRatioNode(Node current, double budget, HashMap<Node, Double> shortestPaths, HashSet<Node> unvisited, HashSet<Node> collected)
     {
         Node bestNode = null;
         double bestRatio = Double.NEGATIVE_INFINITY;
@@ -301,7 +342,6 @@ public class Network
         List<Node> feasibleSet = new ArrayList<>(agent.agentFeasibleSet());
         List<Double> probabilities = new ArrayList<>();
         double total = 0;
-
         for (Node n : feasibleSet) {
             double Q = table.getQvalue(agent.getCurrent().getID(), n.getID());
             double w = agent.getCurrent().getNeighbor(n);
@@ -313,9 +353,9 @@ public class Network
 
         // Normalize probabilities
         for (int i = 0; i < probabilities.size(); i++) {
-            probabilities.set(i, probabilities.get(i) / total);
+            double curr = probabilities.get(i) / total;
+            probabilities.set(i, curr);
         }
-
         double selectedProbability = random.nextDouble();
         double cumulativeProbability = 0.0;
         for (int i = 0; i < probabilities.size(); i++) {
@@ -325,6 +365,7 @@ public class Network
             }
         }
         return feasibleSet.get(random.nextInt(feasibleSet.size()));
+            
     }
 
     public Map<Node, Double> exploitation1(Agent a, Table table) 
@@ -337,7 +378,26 @@ public class Network
         Map<Node, Double> d = new HashMap<>();
         for (Node neighbor : feasibleSet) 
         {
-            double cVal = table.getCvalue(curNode.getID(), neighbor.getID());
+            double cVal = table.getQvalue(curNode.getID(), neighbor.getID());
+            double cost = curNode.getNeighbor(neighbor);
+            double prize = neighbor.getDataPackets();
+            double res = (Math.pow(cVal, delta) * prize) / Math.pow(cost, beta);
+            d.put(neighbor,res<0?0:res);
+        }
+        return sortByValueDescending(d);    
+    }
+
+    public Map<Node, Double> exploitationR(Agent a, Table table) 
+    {
+
+        double delta = 1;
+        double beta =2;
+        HashSet<Node> feasibleSet = new HashSet<>(a.agentFeasibleSet());
+        Node curNode = a.getCurrent();
+        Map<Node, Double> d = new HashMap<>();
+        for (Node neighbor : feasibleSet) 
+        {
+            double cVal = table.getReverseQvalue(curNode.getID(), neighbor.getID());
             double cost = curNode.getNeighbor(neighbor);
             double prize = neighbor.getDataPackets();
             double res = (Math.pow(cVal, delta) * prize) / Math.pow(cost, beta);
@@ -355,6 +415,7 @@ public class Network
         List<Node> feasibleSet = new ArrayList<>(agent.agentFeasibleSet());
         List<Double> probabilities = new ArrayList<>();
         double total = 0;
+        
 
         for (Node n : feasibleSet) {
             double C = table.getCvalue(agent.getCurrent().getID(), n.getID());
@@ -367,9 +428,9 @@ public class Network
 
         // Normalize probabilities
         for (int i = 0; i < probabilities.size(); i++) {
-            probabilities.set(i, probabilities.get(i) / total);
+            double curr = probabilities.get(i) / total;
+            probabilities.set(i, curr);
         }
-
         double selectedProbability = random.nextDouble();
         double cumulativeProbability = 0.0;
         for (int i = 0; i < probabilities.size(); i++) {
@@ -399,7 +460,7 @@ public class Network
 
     public Agent bestAgent(List<Agent> agents)
     {
-        Agent best = null;
+        Agent best = agents.get(0);
         int dataPackets = 0;
        
         for(Agent agent : agents)
@@ -415,23 +476,7 @@ public class Network
         return best;
     }
 
-    public Agent bestAgent1(List<Agent> agents)
-    {
-        Agent best = null;
-        double cost = Double.POSITIVE_INFINITY;
-       
-        for(Agent agent : agents)
-        {
-            double d = agent.getCost();
-            if(d<cost)
-            {
-                cost = d;
-                best = agent;
-            }
-        }
 
-        return best;
-    }
 
     public boolean isNodeDead(List<Node> nodes)
     {
@@ -461,7 +506,43 @@ public class Network
         {
             node.setNodeBattery(6480);
         }
-    }   
+    }
+    
+    public List<Node> dynamicNetwork(List<Node> nodes)
+    {
+        for(int i = 0; i<10; i++)
+        {
+            int node = getRandomNumberUsingNextInt(1, 98);
+            int data = getRandomNumberUsingNextInt(0, 100);
+            System.out.println("Node changed is " + node + " data is " + data + " old data is " + nodes.get(node).getDataPackets());
+            nodes.get(node).setDynamicDataPackets(data);    
+            
+        }
+        return nodes;
+    }
+
+    public boolean isDataBetter(Node node)
+    {
+        if(node.getDataPackets() >= node.getOldDataPackets())
+        {
+            return true;
+        }
+        return false;
+    }
+
+    public Node localSearch(Node startNode,Node nextNode, List<Node> nodes, List<Integer> topNodes, double remainingBattery)
+    {
+        Node best = nextNode;
+        for(Node n : startNode.getNeighborsList())
+        {
+            int id = n.getID();
+            if(n.getDataPackets() > nextNode.getDataPackets() && n.getNeighbor(startNode)*100 <= remainingBattery && !topNodes.contains(id) && best.getDataPackets() < n.getDataPackets()) 
+            {
+                best = n;
+            }
+        }
+        return best;
+    }
 }
     
 

@@ -10,6 +10,7 @@ public class Agent
 {
     private int agentID; 
     private Node curr; // current node where the agent is
+    private boolean end; // if base == base true, if base!= base false
     private double budget; // current budget of the agent
     private int dataPackets; // data packets collected 
     private HashSet<Node> unvisited; // set of unvisited nodes
@@ -21,12 +22,17 @@ public class Agent
     Network network = new Network();
 
     
-    public Agent(int id, Node curr, double budget, boolean isDone, List<Node> nodes, HashMap<Node, Double> shortestPaths)
+    public Agent(int id, Node curr, Node target, boolean end, double budget, boolean isDone, List<Node> nodes, HashMap<Node, Double> shortestPaths)
     {   
         this.curr = curr;
+        this.end = end;
         this.budget = budget*3600; // conversion for Watt Hours to Joules
         this.unvisited = new HashSet<>(nodes);
         unvisited.remove(curr); // remove starting node
+        if(!end)
+        {
+            unvisited.remove(target);
+        }
         this.isDone = isDone;
         this.shortestPaths = shortestPaths;
         this.dataPackets = 0;

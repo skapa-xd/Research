@@ -18,4 +18,8 @@ public class Edge
     public Node getEnd() {
         return end;
     }
+    public double getCost()
+    {
+        return this.cost;
+    }
 }

@@ -7,13 +7,11 @@ import java.util.Set;
 public class Node
 {
     private int id; // node id
-    private String name;
     private int x; // node x co-ordinate
     private int y; // node y co-ordinate
-    private double longitude;
-    private double latitude;
     private boolean isDataNode; // returns true if node is data node, false if storage node
     private int dataPackets; // number of data packets of the node only
+    private int oldDataPackets; // used in case of dynamic network generation
     private int totalDataPackets; // number of data packets of all nodes which fall within the CSP range
     
     private static int counter = 0; // id counter
@@ -93,6 +91,17 @@ public class Node
     public void setDataPackets(int data) // sets data packets of the node
     {
         this.dataPackets = data;
+    }
+
+    public void setDynamicDataPackets(int data)
+    {
+        this.oldDataPackets = this.dataPackets;
+        this.dataPackets = data;
+    }
+
+    public int getOldDataPackets()
+    {
+        return this.oldDataPackets;
     }
 
     public int getTotalDataPackets() // returns data packets from all nodes which fall within the range given by CSP

@@ -33,6 +33,23 @@ public class ILP
             }
         }
     }
+    public ILP(List<Edge> yangs, List<Node> nodes)
+    {
+        this.nodes = nodes;
+        prize = new int[yangs.size()];
+        for(int i = 0; i < yangs.size(); i++)
+        {
+            prize[i] = yangs.get(i).getEnd().getDataPackets();
+        }
+        this.distanceMatrix = new double[yangs.size()][yangs.size()];
+        for(int i = 0; i<yangs.size(); i++)
+        {
+            int start = yangs.get(i).getStart().getID();
+            int end = yangs.get(i).getEnd().getID();
+            this.distanceMatrix[start][end] = yangs.get(i).getCost();
+            this.distanceMatrix[end][start] = yangs.get(i).getCost();
+        }
+    }
 
     public void printDist() // ilp format printing 
     {
