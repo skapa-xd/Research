@@ -10,7 +10,6 @@ import java.awt.Stroke;
 import java.awt.geom.Ellipse2D;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 public class Visualizer extends JPanel implements Runnable {
@@ -115,6 +114,15 @@ public class Visualizer extends JPanel implements Runnable {
             g2.setColor(Color.green); 
             for (int j = 0; j < algo.size() - 1; j++) {
             int nodeIndex1 = algo.get(j);
+            /* g2.setColor(Color.blue);
+            Stroke dashed = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_BEVEL, 0, new float[]{9}, 0);
+            g2.setStroke(dashed);
+            double radius = 300;
+            double diameter = radius * 2;
+            double xCircle = graphPoints.get(nodeIndex1).x - radius;
+            double yCircle = graphPoints.get(nodeIndex1).y - radius;
+            g2.draw(new Ellipse2D.Double(xCircle, yCircle, diameter, diameter));
+            g2.setStroke(stroke); // Reset to original stroke */
             int nodeIndex2 = algo.get(j + 1);
             Point point1 = graphPoints.get(nodeIndex1);
             Point point2 = graphPoints.get(nodeIndex2);
@@ -124,14 +132,14 @@ public class Visualizer extends JPanel implements Runnable {
         
 
         // Use for Yangs
-       /*  g2.setColor(Color.RED);
+        /* g2.setColor(Color.RED);
             for (int j = 0; j < yang.size(); j++) {
             int nodeIndex1 = yang.get(j).start.getID();
             int nodeIndex2 = yang.get(j).end.getID();
             Point point1 = graphPoints.get(nodeIndex1);
             Point point2 = graphPoints.get(nodeIndex2);
             g2.drawLine(point1.x, point1.y, point2.x, point2.y);
-        }         */
+        } */        
     }
 
 

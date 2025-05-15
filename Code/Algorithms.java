@@ -93,6 +93,7 @@ public class Algorithms
         HashSet<Node> Collected = new HashSet<>(); // set of nodes who's data packets are collected
         int Prize = 0; // total data packets collected
         double Cost = 0; // total data packets collected
+        double totalBattery = 0;
 
         
         Node s = nodes.get(start); // get start node
@@ -100,6 +101,7 @@ public class Algorithms
         Unvisited.remove(curr); // remove the curr node, i.e start node
         Collected.add(curr); // add to collected (just added no data packets at start)
         Route.add(curr.getID()); // add to route
+
         
 
         HashMap<Node, Double> shortestPaths = network.findShortestPaths(nodes, curr); // gives shortest paths from curr/start nodes to all nodes
@@ -125,6 +127,7 @@ public class Algorithms
                 currPrize = currPrize + n.getDataPackets();
                 battery = battery - (100*n.getDataPackets()*Math.pow(n.getNeighbor(node),2)*3200)/1000000000000L; // ??TODO?? HAVE TO ADD THE EQUATION OF CONVERSION HERE
             }
+            totalBattery = totalBattery + battery;
             node.setNodeBattery(battery); // update the battery 
             if(!Collected.contains(node))
             {
@@ -143,6 +146,7 @@ public class Algorithms
 
         System.out.println("----------gCSP2------------");
         System.out.println("Route: " + Route);
+        System.out.println("Total Battery consumption of all nodes = " + totalBattery);
         System.out.println("Cost: " + Cost);
         System.out.println("Data Collected: " + Prize);
         System.out.println("Collected from :" + Collected.size());
@@ -152,6 +156,153 @@ public class Algorithms
         System.out.println("---------------------------");
 
         return Route;    
+    }
+
+    
+
+    public List<Integer> pollingNodes(List<Node> nodes, int start, int x)
+    {
+        int currX = x;
+        Network network = new Network();
+
+        List<Integer> Route  = new ArrayList<>(); // route of the robot
+        HashSet<Node> Unvisited = new HashSet<>(nodes); // set of nodes the robot has yet to visit
+        double Cost = 0; // total data packets collected
+
+        Node curr = nodes.get(start); // get curr node
+        Unvisited.remove(curr); // remove the curr node, i.e start node
+        Unvisited.removeAll(curr.getRangeNeighborList());
+        Route.add(curr.getID()); // add to route
+        
+
+        while(!Unvisited.isEmpty()) // run untill all nodes visited or no feasible nodes available from current node
+        {
+            Node node = network.coverCostRatio(curr, Unvisited, currX); // gives the best next node max(data packets from self + neighbor)/distance
+        
+            if(node == null)
+            {
+                break; // all nodes visited or collected
+            }
+            Route.add(node.getID());
+            Cost = Cost + node.getNeighbor(curr);
+            Unvisited.remove(node);
+            Unvisited.removeAll(node.getRangeNeighborList());
+            curr = node;
+        }
+        /* System.out.println(Route); */
+        return Route;
+    }
+
+    public double MinimumSpanningTree(List<Node> nodes, List<Integer> Route)
+    {
+        Set<Node> visitedNodes = new HashSet<>();
+        List<Edge> mstEdges = new ArrayList<>();
+        double totalCost = 0;
+        int data = 0;
+        Node startNode = nodes.get(Route.get(0));
+        visitedNodes.add(startNode);
+
+        while (visitedNodes.size() < Route.size()) {
+            Edge minEdge = null;
+            double minCost = Double.MAX_VALUE;
+            for (Node node : visitedNodes) {
+                for (Node neighbor : node.getNeighborsList()) {
+                    if (!visitedNodes.contains(neighbor) && Route.contains(neighbor.getID())) {
+                        double cost = node.getNeighbor(neighbor);
+                        if (cost < minCost) {
+                            minCost = cost;
+                            minEdge = new Edge(node, neighbor, cost);
+                        }
+                    }
+                }
+            }
+            if (minEdge != null) {
+                totalCost += minEdge.cost;
+                visitedNodes.add(minEdge.end);
+                mstEdges.add(minEdge);
+                data  += minEdge.end.getDataPackets();
+            } else {
+                break;
+            }
+        }
+        /* System.out.println(data);
+        System.out.println(totalCost); */
+        return totalCost;
+    }
+
+    public List<Integer> SCA(List<Node> nodes, int start, double budget, int length)
+    {
+        double Budget = budget *3600;
+        List<Integer> pollingNodes = pollingNodes(nodes, start, length);
+        double Cost = 200*MinimumSpanningTree(nodes, pollingNodes);
+       
+        int right = length;
+        int mid;
+        double tolerance = 0.30 * Budget;
+        //System.out.println("Tolerance " + tolerance);
+
+        while (right > 0) 
+        {
+            /* System.out.println("---------------------");
+            System.out.println("Right Border " + right); */
+            mid =  right/ 2;
+            List<Node> filteredNodes = new ArrayList<>();
+            for (Node node : nodes) 
+            {
+                if (node.getX() <= mid) 
+                {
+                    filteredNodes.add(node);
+                }
+            }
+            pollingNodes = pollingNodes(filteredNodes, start, mid);
+            Cost = 200*MinimumSpanningTree(filteredNodes, pollingNodes);
+            /* System.out.println("New Cost with preorder " + Cost);
+            System.out.println("Should be between " + (Budget-tolerance)  + "and" + Budget); */
+            if (Cost >= Math.abs( Budget - tolerance) && Cost <= Budget) 
+            {
+                break;
+            } 
+            else if (Cost < Budget - tolerance) 
+            {
+                //System.out.println("Cost is way less, increasing by HALF MORE");
+                right = right + (right/2);
+            } 
+            else if(Cost > Budget)
+            {
+                //System.out.println("COst is way too high, HALFING");
+                right = mid;
+            }
+        }
+        
+        int data = 0;
+        HashSet<Node> collected = new HashSet<>();
+        for(int i : pollingNodes)
+        {
+            if(!collected.contains(nodes.get(i)))
+            {
+                data = data + nodes.get(i).getDataPackets();
+                collected.add(nodes.get(i));
+            }
+            
+            for(Node n : nodes.get(i).getRangeNeighborList())
+            {
+                if(!collected.contains(n))
+                {
+                    data = data + n.getDataPackets();
+                }
+                else{
+                }
+            }
+        }
+        pollingNodes.add(0);
+        System.out.println("----------SGA------------");
+        System.out.println("Polling Nodes: " + pollingNodes);
+        System.out.println("MST Cost: " + Cost/200 );
+        System.out.println("Traversal Cost: " + Cost/100);
+        System.out.println("Data collected: " + data);
+        return pollingNodes;
+        
+
     }
 
     // GEOMETRIC TSP 1, robot will always go to the node with highest data packets
@@ -302,8 +453,8 @@ public class Algorithms
                     }
                 }
             }
-            if (minEdge != null && (totalCost + minEdge.cost*100)*2 <= Budget) {
-                totalCost += minEdge.cost*100;
+            if (minEdge != null ) {
+                totalCost += minEdge.cost;
                 visited.add(minEdge.end);
                 mstEdges.add(minEdge);
                 Prize = Prize + minEdge.end.getDataPackets();
@@ -420,7 +571,7 @@ public class Algorithms
                 int state = best.getRoute().get(i);
                 int action = best.getRoute().get(i+1);
 
-                table.updateRValue(state, action, best.getDataPackets());
+                table.updateRValue(state, action, best.getDataPackets()); //overloaded function
                 table.updateQvalue2(state, action, best.getBudget(), best.getUnvisited(), shortestPaths);
             }
             allAgents.clear(); // clears list of agents 
@@ -430,7 +581,7 @@ public class Algorithms
         
         Agent bestAgent = new Agent(0, base,target, end, budget, false, nodes, shortestPaths);
         
-        while(bestAgent.agentFeasibleSet().size()!=0)
+        while(!bestAgent.agentFeasibleSet().isEmpty())
         {
             Node next = table.getQMaxValue(bestAgent.getCurrent().getID(), bestAgent.getBudget(), bestAgent.getUnvisited(), shortestPaths);
             //System.out.println("Current" + bestAgent.getCurrent().getID() + "Next" + next.getID() + "Budget" + bestAgent.getBudget());
@@ -561,7 +712,7 @@ public class Algorithms
                     int state = best.getRoute().get(i);
                     int action = best.getRoute().get(i+1);
 
-                    table.updateRValue(episode, state, action, best.getDataPackets());
+                    table.updateRValue(episode, state, action, best.getDataPackets()); // overloaded function
                     table.updateQvalue2(state, action, best.getBudget(), best.getUnvisited(), shortestPaths);
                 }
             }
@@ -573,7 +724,7 @@ public class Algorithms
         
         Agent bestAgent = new Agent(0, base, target, end, budget, false, nodes, shortestPaths);
         
-        while(bestAgent.agentFeasibleSet().size()!=0)
+        while(!bestAgent.agentFeasibleSet().isEmpty())
         {
             Node next = table.getQMaxValue(bestAgent.getCurrent().getID(), bestAgent.getBudget(), bestAgent.getUnvisited(), shortestPaths);
             //System.out.println("Current" + bestAgent.getCurrent().getID() + "Next" + next.getID() + "Budget" + bestAgent.getBudget());
@@ -714,7 +865,7 @@ public class Algorithms
         
         Agent bestAgent = new Agent(0, base, target, false, budget, false, nodes, shortestPaths);
         
-        while(bestAgent.agentFeasibleSet().size()!=0)
+        while(!bestAgent.agentFeasibleSet().isEmpty())
         {
             Node next = table1.getQMaxValueR(bestAgent.getCurrent().getID(), bestAgent.getBudget(), bestAgent.getUnvisited(), shortestPaths);
             //System.out.println("Current" + bestAgent.getCurrent().getID() + "Next" + next.getID() + "Budget" + bestAgent.getBudget());

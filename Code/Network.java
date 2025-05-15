@@ -215,6 +215,36 @@ public class Network
         return bestNode;
     }
 
+    public Node coverCostRatio(Node current, HashSet<Node> unvisited, int x)
+    {
+        Node bestNode = null;
+        double bestRatio = Double.POSITIVE_INFINITY;
+
+        for(Node node: current.getNeighborsList())
+        {
+            if(unvisited.contains(node) && node.getX() <= x )
+            {
+                int neighbor = 1;
+                for(Node n : node.getRangeNeighborList())
+                {
+                    if(unvisited.contains(n) && n.getX() <= x )
+                    {
+                        neighbor++;
+                    }
+                }
+                double ratio = (double)current.getNeighbor(node)/neighbor;
+                
+                if(ratio<bestRatio)
+                {
+                    bestRatio = ratio;
+                    bestNode = node;
+                }
+            }
+        }
+
+        return bestNode;
+    }
+
      public Node bestCoveredPrizeCostRatioNode(Node current, double budget, HashMap<Node, Double> shortestPaths, HashSet<Node> unvisited, HashSet<Node> collected)
     {
         Node bestNode = null;
@@ -542,6 +572,14 @@ public class Network
             }
         }
         return best;
+    }
+
+    public void setNodeDataPackets(List<Node> nodes, int data)
+    {
+        for(Node node : nodes)
+        {
+            node.setDataPackets(data);
+        }
     }
 }
     

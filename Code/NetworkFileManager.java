@@ -43,9 +43,9 @@ public class NetworkFileManager
         return nodes;
     }
 
-    public void saveNetwork(List<Node> nodes) throws IOException 
+    public void saveNetwork(List<Node> nodes, int fileNumber) throws IOException 
   {
-    String fileName = "Network" + System.currentTimeMillis() + ".txt";
+    String fileName = "N" + fileNumber + ".txt";
     FileWriter writer = new FileWriter(fileName);
 
     try 

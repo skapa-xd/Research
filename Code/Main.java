@@ -1,7 +1,5 @@
 // THIS IS THE MAIN FUNCTION WHERE YOU CAN RUN STUFF
 
-/* Did not create a program yet so comment out what you dont need */
-
 import java.io.IOException;
 import java.util.*;
 
@@ -10,94 +8,76 @@ public class Main
 {
     public static void main(String[] args) throws IOException 
     {
-        // intializers
+        
         Network network = new Network();
         Algorithms algorithms = new Algorithms();
         NetworkFileManager file = new NetworkFileManager(); 
         Map<Node, Double> shortest = new HashMap<>();
         
+        //----------------------------------------------------------------------VARIABLE SETUP -----------------------------------------------------------------------
         
-        // variables
-        double B = 55.55; // budget
+        int length = 1000;
+        int width = 1000;
+        int numOfNodes = 30; // total num of nodes
+        int tr = 0; // this is for how long every node should be placed compared to other node
+        int range = 100; // robot/node range
+        double B = 50; // budget
+        int start = 0; // start location
+        int end = 0; // end location / end depot
+        boolean isEndEqualToStart = true;
+        int episode =1000;
+        int agents = 30;
+        double learningRate = 0.1;
+        double discountFactor = 0.7;
+        double tradeoff = 0.5;
         /* int min =800; // min data packets (used for network longevity)
         int max = 1000; // max data packets (used for network longevity) */
-        int start = 0;
         
+        //-------------------------------------------------------------------LOAD NETWORK OR GENERATE RANDOM----------------------------------------------------------------
+        //List<Node> nodes = file.loadNetwork("/E:/Research/Networks/Network1.txt"); // load from a file 
+        List<Node> nodes =  network.generateNodes(length, width, numOfNodes, tr, isEndEqualToStart); // generate random network, end == true means that start and end are same 0,0; if it is false then start will be 0,0 and end will be width,length
+        network.addEdges(nodes, range); // make the network aware of neighbors
+        shortest = network.findShortestPaths(nodes, nodes.get(start)); // shortest path using dijkstras
 
-        List<Node> nodes = file.loadNetwork("/E:/Research/Networks/N1.txt"); // load from a file 
-        //List<Node> nodes =  network.generateNodes(1000, 1000, 100, 50,true); // generate random network, end == true means that start and end are same 0,0; 
-        // if it is false then start will be 0,0 and end will be width,length
-        network.addEdges(nodes, 100); // make the network aware of neighbors
-
-        shortest = network.findShortestPaths(nodes, nodes.get(start)); // assigns hashmap to shortest
-
-        //prints node info
+        //--------------------------------------------------------------------PRINT NODE INFO-------------------------------------------------------------------------------
         for(Node node : nodes)
         {
             node.nodeInfo();
         }
-
         //prints shortest path to each node from the start
-        /* for(Node node: shortest.keySet())
+        for(Node node: shortest.keySet())
         {
             double cost = shortest.get(node);
             System.out.println("Shortest path to Node " + node.getID() +" from node " + start +  ": " + cost);
-        } */
-
+        }
         // prints the total data available to be collected
         network.totalDataAvailable(nodes);
         System.out.println("The budget for robots is " + B + "Wh");
 
-        // algorithms
-        //List<Integer> tsp1 = algorithms.gTSP1(nodes, 0, B);
+        //-------------------------------------------------------------------------ALGORITHMS----------------------------------------------------------------------------
+        List<Integer> tsp1 = algorithms.gTSP1(nodes, start, B); // Selects node with highest prize
+       
+        List<Integer> tsp2 =  algorithms.gTSP2(nodes, start, B, isEndEqualToStart); // selects node with highest prize cost ratio PCR
+       
+        List<Integer> csp1 = algorithms.greedy1CSP(nodes, start, B); // Covering salesman highest prize
+       
+        List<Integer> csp2 = algorithms.greedy2CSP(nodes, start, B); // Covering salesman highest prize cost ratio PCR
+
+        List<Integer> marl = algorithms.MARL(nodes, start, end, isEndEqualToStart, B, episode,agents, learningRate, discountFactor, tradeoff);
+       
+        Pair cmarl = algorithms.CMARL(nodes,start, end, isEndEqualToStart, B, episode,agents, learningRate,discountFactor, tradeoff);
         
-        /* long startT = System.currentTimeMillis();
-        List<Integer> tsp2 =  algorithms.gTSP2(nodes, 0, B, false);
-        long endT = System.currentTimeMillis();
-        double timeT = (double)endT - startT ;
-        System.out.println("TSP time is " + timeT); */
-        
-        //List<Integer> csp1 = algorithms.greedy1CSP(nodes, 0, B);
-        long startCSP2 = System.currentTimeMillis();
-        List<Integer> csp2 = algorithms.greedy2CSP(nodes, 0, B);
-        long endCSP2 = System.currentTimeMillis();
-        System.out.println("CSP 2 time is :" + (endCSP2-startCSP2));
+    
+        /* long startSpanning = System.currentTimeMillis();
+        List<Integer> sca = algorithms.SCA(nodes, start, B, length);
+        long endSpanning = System.currentTimeMillis();
+        System.out.println("SCA  time is :" + (endSpanning-startSpanning)); */
         
         /* long startY = System.currentTimeMillis();
         List<Edge> yang = algorithms.nYangs(nodes, 0, B); 
         long endY = System.currentTimeMillis();
         double timeY = (double)endY - startY ;
-        System.out.println("Yang time is " + timeY); */
-
-        
-
-        
-        
-       /*  long startC = System.currentTimeMillis();
-        Pair cmarl = algorithms.CMARL(nodes,0,99, false, B, 1000,30, 0.3, 0.7, 0.5);
-        long endC = System.currentTimeMillis();
-        double timeC = (double)endC - startC ;
-        System.out.println("CMARL time is " + timeC); */
-        
-    
-        /* List<Node> nodes1 = network.dynamicNetwork(nodes); // makes it dynamic
-
-        long startC1 = System.currentTimeMillis();
-        Pair cmarl1 = algorithms.CMARL(nodes1,99,0, false, B, 1000,30, 0.3, 0.7, 0.5);
-        long endC1 = System.currentTimeMillis();
-        double timeC1 = (double)endC1 - startC1;
-        System.out.println("CMARL time is " + timeC1/1000);
-
-        long startM = System.currentTimeMillis();
-        List<Integer> marl = algorithms.MARL(nodes1, 99,0, false, B, 1000,30, 0.1, 0.7, 0.5);
-        long endM = System.currentTimeMillis();
-        double timeM = (double)endM - startM ;
-        System.out.println("MARL time is " + timeM/1000); */
-
-       
-
-        
-       
+        System.out.println("Yang time is " + timeY); *
 
         /* long startTL = System.currentTimeMillis();
         algorithms.TL1( nodes1, cmarl);
@@ -105,19 +85,47 @@ public class Main
         double timeTL = (double)endTL - startTL ;
         System.out.println("Transfer Learning time is " + timeTL);  */
 
-        
-        
-        
-       /*  Visualizer visualize1 = new Visualizer(nodes, 10000, 10000);
+        // ------------------------------------------------------------------VISUALIZING----------------------------------------------------------
+       /*  Visualizer visualize1 = new Visualizer(nodes, 1000, 1000);
         visualize1.run(); */
         
+        // visualizes the routes
+        /* Visualizer visualize = new Visualizer(nodes,spanning, 1000, 1000);
+        visualize.run(); */
 
-        ILP ilp = new ILP( nodes);
+        /* Visualizer visualize1 = new Visualizer(nodes, length, width, csp2);
+        visualize1.run();
+        Visualizer visualize = new Visualizer(nodes, length, width, sca);
+        visualize.run();
+ */
+        
+        // ----------------------------------------------------------------- Saving random network to txt file------------------------------------------------
+        
+        /* Scanner scanner = new Scanner(System.in);
+        System.out.println("Do you want to save the network? 0/1");
+        int ans = scanner.nextInt();
+        if(ans==1)
+        {
+            System.out.println("Give the file number");
+            int fileNumber = scanner.nextInt();
+            file.saveNetwork(nodes, fileNumber);
+            System.out.println("Network saved");
+        }
+        else
+        {
+            System.exit(0);
+        } */
+        
+      
+        
+        //-------------------------------------------------ILP STUFF------------------------------------------------------
+        /* ILP ilp = new ILP( nodes);
 
         ilp.print2DString();
         ilp.printPrize();
         ilp.printSize();
-/* 
+        
+
         for(Node n : nodes)
         {
             System.out.println(n.getX()+ " "+ n.getY());
@@ -126,31 +134,7 @@ public class Main
         {
             System.out.println(n.getID()+ "(" + n.getDataPackets() + ")");
         } */
-            
-
-        // visualizes the routes
-        Visualizer visualize = new Visualizer(nodes, 1000, 1000, csp2);
-        visualize.run();
-
         
-        
-        
-        /* Scanner scanner = new Scanner(System.in);
-        System.out.println("Do you want to save the network? 0/1");
-        int ans = scanner.nextInt();
-        if(ans==1)
-        {
-            file.saveNetwork(nodes);
-            System.out.println("Network saved");
-        }
-        else
-        {
-            System.exit(0);
-        } */
-        
-        
-        // TODO compare antq with c-marl(transfer learning)
-
         
         
         

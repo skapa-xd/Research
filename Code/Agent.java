@@ -1,5 +1,4 @@
 // Agent class which is used in MARL
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -29,7 +28,7 @@ public class Agent
         this.budget = budget*3600; // conversion for Watt Hours to Joules
         this.unvisited = new HashSet<>(nodes);
         unvisited.remove(curr); // remove starting node
-        if(!end)
+        if(!this.end)
         {
             unvisited.remove(target);
         }
